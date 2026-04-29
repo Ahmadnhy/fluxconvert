@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Download - FileRefine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary": "#ffffff",
+                      "background": "#f9f9fc",
+                      "outline-variant": "#c2c7cd",
+                      "on-primary-fixed": "#001e2e",
+                      "secondary-fixed": "#dce4e9",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-fixed": "#ffdcbe",
+                      "surface-container-low": "#f3f3f6",
+                      "primary-container": "#547a95",
+                      "primary-fixed-dim": "#a5cbe9",
+                      "on-secondary-container": "#5c6468",
+                      "on-tertiary-fixed": "#2c1600",
+                      "tertiary-fixed-dim": "#f1bc8a",
+                      "error-container": "#ffdad6",
+                      "surface": "#f9f9fc",
+                      "on-error-container": "#93000a",
+                      "surface-dim": "#dadadc",
+                      "secondary-container": "#d9e1e6",
+                      "on-tertiary-fixed-variant": "#633f17",
+                      "on-primary-container": "#fffeff",
+                      "surface-variant": "#e2e2e5",
+                      "inverse-surface": "#2f3133",
+                      "primary": "#3b617b",
+                      "on-surface-variant": "#42474d",
+                      "on-secondary-fixed": "#151d20",
+                      "surface-bright": "#f9f9fc",
+                      "tertiary-container": "#986d41",
+                      "surface-container-high": "#e8e8ea",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary": "#7c552b",
+                      "on-surface": "#1a1c1e",
+                      "inverse-on-surface": "#f0f0f3",
+                      "on-tertiary-container": "#fffeff",
+                      "on-secondary-fixed-variant": "#40484c",
+                      "inverse-primary": "#a5cbe9",
+                      "surface-container-highest": "#e2e2e5",
+                      "secondary": "#576064",
+                      "outline": "#72787d",
+                      "on-background": "#1a1c1e",
+                      "secondary-fixed-dim": "#c0c8cd",
+                      "on-primary-fixed-variant": "#224b64",
+                      "surface-container": "#eeeef0",
+                      "on-error": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "surface-tint": "#3c627c",
+                      "primary-fixed": "#c8e6ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "gutter": "24px",
+                      "md": "24px",
+                      "lg": "48px",
+                      "sm": "12px",
+                      "xs": "4px",
+                      "xl": "80px",
+                      "container-max": "1120px"
+              },
+              "fontFamily": {
+                      "h2": [
+                              "Manrope"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "h3": [
+                              "Manrope"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "h1": [
+                              "Manrope"
+                      ]
+              },
+              "fontSize": {
+                      "h2": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h3": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1": [
+                              "40px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased">
+<!-- TopNavBar (Transactional Intent - Suppressed) -->
+<!-- As per the Semantic Shell Mandate, transactional/success screens imply a temporary departure or focused journey, so the global nav is excluded to prioritize the Canvas. -->
+<!-- Main Content Canvas -->
+<main class="flex-grow flex items-center justify-center py-xl px-gutter relative overflow-hidden">
+<!-- Decorative Background Elements (Minimalist) -->
+<div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-surface-container-low to-transparent -z-10"></div>
+<div class="absolute top-1/4 -right-32 w-[500px] h-[500px] bg-primary-fixed rounded-full blur-[120px] opacity-20 -z-10 pointer-events-none"></div>
+<div class="w-full max-w-2xl mx-auto flex flex-col items-center text-center">
+<!-- Success Icon & Message -->
+<div class="mb-lg flex flex-col items-center">
+<div class="w-24 h-24 rounded-full bg-surface-container-highest border-8 border-surface-container-lowest flex items-center justify-center mb-md relative">
+<span class="material-symbols-outlined text-primary text-[40px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<div class="absolute inset-0 rounded-full border border-surface-variant z-10 pointer-events-none"></div>
+</div>
+<h1 class="font-h1 text-h1 text-on-surface mb-sm">File converted successfully!</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md mx-auto">Your document is ready. You can download it now or save it directly to your preferred cloud storage.</p>
+</div>
+<!-- Download Action Card -->
+<div class="w-full bg-surface-container-lowest rounded-xl border border-surface-variant p-lg shadow-[0px_4px_20px_rgba(84,122,149,0.08)] mb-lg flex flex-col items-center">
+<!-- File Details Context (Optional but good for UX) -->
+<div class="flex items-center gap-sm mb-md px-md py-sm bg-surface-container-low rounded-lg border border-surface-variant">
+<span class="material-symbols-outlined text-secondary" data-icon="description">description</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">quarterly_report_final.pdf</span>
+<span class="font-body-sm text-body-sm text-outline px-sm border-l border-outline-variant">2.4 MB</span>
+</div>
+<button class="w-full max-w-sm bg-primary-container text-on-primary-container font-h3 text-[20px] py-md rounded-lg flex items-center justify-center gap-sm transition-colors hover:bg-primary hover:text-on-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+                    Download PDF
+                </button>
+</div>
+<!-- Secondary Actions Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md w-full max-w-3xl">
+<!-- Convert Another -->
+<a class="group bg-surface-container-lowest rounded-lg border border-surface-variant p-md flex flex-col items-center justify-center text-center hover:border-primary-container transition-all hover:shadow-[0px_4px_20px_rgba(84,122,149,0.08)] cursor-pointer" href="#">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors" data-icon="autorenew">autorenew</span>
+</div>
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Convert another file</span>
+</a>
+<!-- Save to Drive -->
+<a class="group bg-surface-container-lowest rounded-lg border border-surface-variant p-md flex flex-col items-center justify-center text-center hover:border-primary-container transition-all hover:shadow-[0px_4px_20px_rgba(84,122,149,0.08)] cursor-pointer" href="#">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors" data-icon="add_to_drive">add_to_drive</span>
+</div>
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Save to Google Drive</span>
+</a>
+<!-- Share Link -->
+<a class="group bg-surface-container-lowest rounded-lg border border-surface-variant p-md flex flex-col items-center justify-center text-center hover:border-primary-container transition-all hover:shadow-[0px_4px_20px_rgba(84,122,149,0.08)] cursor-pointer" href="#">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors" data-icon="link">link</span>
+</div>
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Share Link</span>
+</a>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-manrope text-xs full-width mt-20 border-t border-slate-200 dark:border-slate-800 flat no shadows transition-all duration-300">
+<div class="max-w-7xl mx-auto py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="text-lg font-semibold text-slate-800 dark:text-white">FileRefine</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:underline hover:text-slate-800 dark:hover:text-slate-200" href="#">Tools</a>
+<a class="text-slate-500 dark:text-slate-400 hover:underline hover:text-slate-800 dark:hover:text-slate-200" href="#">Developer API</a>
+<a class="text-slate-500 dark:text-slate-400 hover:underline hover:text-slate-800 dark:hover:text-slate-200" href="#">Pricing</a>
+<a class="text-slate-500 dark:text-slate-400 hover:underline hover:text-slate-800 dark:hover:text-slate-200" href="#">Privacy Policy</a>
+<a class="text-slate-500 dark:text-slate-400 hover:underline hover:text-slate-800 dark:hover:text-slate-200" href="#">Terms of Service</a>
+<a class="text-slate-500 dark:text-slate-400 hover:underline hover:text-slate-800 dark:hover:text-slate-200" href="#">Help Center</a>
+</div>
+<div>© 2024 FileRefine. Precise tools for creative professionals.</div>
+</div>
+</footer>
+</body></html>
