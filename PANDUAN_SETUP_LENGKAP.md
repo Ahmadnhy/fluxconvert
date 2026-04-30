@@ -1,5 +1,7 @@
 # 📘 Panduan Setup Lengkap FluxConvert
 
+CTRL + SHIFT + V BUAT LIHATNYA GAMPANG
+
 Panduan ini menggabungkan semua langkah setup yang diperlukan untuk menjalankan aplikasi FluxConvert, disusun dalam urutan yang harus dikerjakan dari awal sampai akhir.
 
 ---
@@ -533,10 +535,10 @@ Selamat! Anda telah menyelesaikan semua setup yang diperlukan untuk aplikasi Flu
 
 ## Checklist Final
 
-- [ ] ✅ Database Supabase dibuat dan schema dijalankan
-- [ ] ✅ Migrasi field status diterapkan
-- [ ] ✅ Storage bucket 'uploads' dan 'converted' dibuat
-- [ ] ✅ Storage policy dikonfigurasi (6 policy)
+- [x] ✅ Database Supabase dibuat dan schema dijalankan
+- [x] ✅ Migrasi field status diterapkan
+- [x] ✅ Storage bucket 'uploads' dan 'converted' dibuat
+- [x] ✅ Storage policy dikonfigurasi (6 policy)
 - [ ] ✅ Vercel Cron job dikonfigurasi
 - [ ] ✅ Environment variables diset (lokal dan production)
 
