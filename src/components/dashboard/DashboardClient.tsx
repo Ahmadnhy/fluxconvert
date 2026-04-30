@@ -1,8 +1,6 @@
 'use client';
 
-import { QuotaProvider } from '@/src/contexts/QuotaContext';
 import ConversionHistory from '@/src/components/dashboard/ConversionHistory';
-import QuotaDisplay from '@/src/components/dashboard/QuotaDisplay';
 import Link from 'next/link';
 
 interface DashboardClientProps {
@@ -11,7 +9,7 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ userEmail }: DashboardClientProps) {
   return (
-    <QuotaProvider>
+    <>
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[#1a1c1e] mb-2">
@@ -21,9 +19,6 @@ export default function DashboardClient({ userEmail }: DashboardClientProps) {
           {userEmail}
         </p>
       </div>
-
-      {/* Quota Display */}
-      <QuotaDisplay />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -69,6 +64,6 @@ export default function DashboardClient({ userEmail }: DashboardClientProps) {
 
       {/* Conversion History */}
       <ConversionHistory />
-    </QuotaProvider>
+    </>
   );
 }

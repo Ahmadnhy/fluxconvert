@@ -6,7 +6,6 @@ import { uploadFile } from '@/src/lib/storage/operations';
 import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
-import { enforceRateLimit, createRateLimitResponse } from '@/src/lib/middleware/rateLimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,19 +18,6 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id || null;
-    const isAuthenticated = !!userId;
-
-    // Determine identifier for rate limiting
-    // Use user ID for authenticated users, IP address for unauthenticated users
-    const identifier = userId || request.ip || request.headers.get('x-forwarded-for') || 'unknown';
-
-    // Enforce rate limit
-    const rateLimitResult = enforceRateLimit(identifier, isAuthenticated);
-
-    // If rate limit exceeded, return 429 response
-    if (!rateLimitResult.allowed) {
-      return createRateLimitResponse(rateLimitResult);
-    }
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
