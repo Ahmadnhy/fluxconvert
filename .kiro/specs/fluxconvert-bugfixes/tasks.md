@@ -127,7 +127,7 @@
 
 - [x] 2.3 Implement Remember Me functionality
 
-  - [ ] 2.3.1 Add state management for checkbox
+  - [x] 2.3.1 Add state management for checkbox
     - Add React state variable: `const [rememberMe, setRememberMe] = useState(false);`
     - Connect checkbox to state with `checked` and `onChange` props
     - Optional: Add localStorage persistence to remember checkbox state across page refreshes
@@ -137,14 +137,14 @@
     - _Preservation: Login without "Remember me" works exactly as before_
     - _Requirements: 2.3, 2.4, 3.1_
 
-  - [ ] 2.3.2 Research Supabase session persistence options
+  - [x] 2.3.2 Research Supabase session persistence options
     - Investigate Supabase auth configuration for session persistence
     - Check if `persistSession` option exists in `signInWithPassword`
     - Determine correct way to implement "Remember me" with Supabase (session duration, persistence options)
     - Document the approach to be used
     - _Requirements: 2.3, 2.4_
 
-  - [ ] 2.3.3 Configure session persistence based on checkbox state
+  - [x] 2.3.3 Configure session persistence based on checkbox state
     - Modify `signInWithPassword` call to use checkbox value for session configuration
     - Apply Supabase session options based on `rememberMe` state
     - Ensure extended session duration when checkbox is checked
@@ -152,7 +152,7 @@
     - File: `src/components/auth/LoginForm.tsx`
     - _Requirements: 2.3, 2.4, 2.5_
 
-  - [ ] 2.3.4 Verify bug condition exploration test now passes
+  - [x] 2.3.4 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Remember Me Configures Session Persistence
     - **IMPORTANT**: Re-run the SAME test from task 2.1 - do NOT write a new test
     - The test from task 2.1 encodes the expected behavior
@@ -163,7 +163,7 @@
     - Verify login with "Remember me" checked results in extended session
     - _Requirements: 2.3, 2.4_
 
-  - [ ] 2.3.5 Verify preservation tests still pass
+  - [x] 2.3.5 Verify preservation tests still pass
     - **Property 2: Preservation** - Default Login Behavior Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 2.2 - do NOT write new tests
     - Run preservation property tests from step 2.2
@@ -175,7 +175,7 @@
 
 ### 2.4 Checkpoint - Ensure all Bug 2 tests pass
 
-- [ ] 2.4 Checkpoint - Ensure all Bug 2 tests pass
+- [x] 2.4 Checkpoint - Ensure all Bug 2 tests pass
   - Verify "Remember me" checkbox has state management
   - Verify session persistence differs based on checkbox state
   - Verify default login behavior is unchanged

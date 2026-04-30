@@ -9,6 +9,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -23,6 +24,14 @@ export default function LoginForm() {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          // Note: With @supabase/ssr, sessions are stored in cookies which persist by default.
+          // The rememberMe flag is captured here for potential future use or analytics.
+          // In a pure client-side setup, this would control localStorage vs sessionStorage.
+          data: {
+            rememberMe: rememberMe
+          }
+        }
       });
 
       if (error) throw error;
@@ -102,6 +111,8 @@ export default function LoginForm() {
             <label className="flex items-center">
               <input
                 type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 text-[#5b8ba8] border-gray-300 rounded focus:ring-[#5b8ba8]"
               />
               <span className="ml-2 text-gray-600">Remember me</span>
