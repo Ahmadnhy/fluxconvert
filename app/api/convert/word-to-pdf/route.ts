@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFDocument, rgb } from 'pdf-lib';
 import mammoth from 'mammoth';
+import { createClient } from '@/src/lib/supabase/server';
+import { uploadFile } from '@/src/lib/storage/operations';
+import { createFileRecord } from '@/src/lib/database/files';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,9 +38,57 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get authenticated user (optional - handle both authenticated and unauthenticated users)
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || null;
+
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    // Generate unique storage path: {user_id}/{timestamp}-{filename}
+    const timestamp = Date.now();
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const storagePath = userId 
+      ? `${userId}/${timestamp}-${sanitizedFileName}`
+      : `anonymous/${timestamp}-${sanitizedFileName}`;
+
+    // Upload input file to 'uploads' bucket
+    const uploadResult = await uploadFile(
+      'uploads',
+      storagePath,
+      buffer,
+      { contentType: file.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }
+    );
+
+    if (uploadResult.error) {
+      console.error('Failed to upload input file:', uploadResult.error);
+      return NextResponse.json(
+        { error: 'Failed to upload file to storage' },
+        { status: 500 }
+      );
+    }
+
+    // Create file record in database
+    const fileRecordResult = await createFileRecord({
+      user_id: userId,
+      file_name: file.name,
+      file_type: file.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      file_size: file.size,
+      storage_path: uploadResult.path,
+      storage_bucket: 'uploads',
+    });
+
+    if (fileRecordResult.error) {
+      console.error('Failed to create file record:', fileRecordResult.error);
+      return NextResponse.json(
+        { error: 'Failed to create file record in database' },
+        { status: 500 }
+      );
+    }
+
+    console.log(`File uploaded successfully: ${uploadResult.path}, File record ID: ${fileRecordResult.id}`);
 
     // Extract text and HTML from Word document using mammoth
     const result = await mammoth.convertToHtml({ buffer });

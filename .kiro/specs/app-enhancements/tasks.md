@@ -110,7 +110,7 @@ This implementation plan transforms the FluxConvert application from a simple co
     - Configure allowed MIME types for each bucket
     - _Requirements: 6.2, 6.3_
   
-  - [~] 7.2 Configure storage policies
+  - [x] 7.2 Configure storage policies
     - Create policy for users to upload their own files to 'uploads' bucket
     - Create policy for users to read their own files from 'uploads' bucket
     - Create policy for users to read their converted files from 'converted' bucket
@@ -118,57 +118,57 @@ This implementation plan transforms the FluxConvert application from a simple co
     - _Requirements: 6.1, 6.2, 6.3_
 
 - [ ] 8. Create storage utility functions
-  - [~] 8.1 Implement file upload function
+  - [x] 8.1 Implement file upload function
     - Create `src/lib/storage/operations.ts` with uploadFile function
     - Handle file upload to specified bucket and path
     - Return storage path or error
     - _Requirements: 6.1, 6.2_
   
-  - [~] 8.2 Implement file deletion function
+  - [x] 8.2 Implement file deletion function
     - Add deleteFile function to storage operations
     - Handle file deletion from specified bucket and path
     - Return success status or error
     - _Requirements: 10.2, 10.4_
   
-  - [~] 8.3 Implement signed URL generator
+  - [x] 8.3 Implement signed URL generator
     - Create `src/lib/storage/signedUrls.ts` with generateSignedUrl function
     - Generate time-limited URLs with 1-hour expiration
     - Support both uploads and converted buckets
     - Handle errors for missing files
     - _Requirements: 7.1, 7.2, 7.3_
   
-  - [~] 8.4 Write unit tests for storage utilities
+  - [x] 8.4 Write unit tests for storage utilities
     - Test uploadFile handles success and errors
     - Test deleteFile handles success and errors
     - Test generateSignedUrl creates valid URLs
     - _Requirements: 6.1, 7.1, 10.2_
 
 - [ ] 9. Create database utility functions
-  - [~] 9.1 Implement file record creation
+  - [x] 9.1 Implement file record creation
     - Create `src/lib/database/files.ts` with createFileRecord function
     - Insert file metadata into files table
     - Return file ID or error
     - _Requirements: 5.2, 6.4, 6.5_
   
-  - [~] 9.2 Implement conversion record creation
+  - [x] 9.2 Implement conversion record creation
     - Create `src/lib/database/conversions.ts` with createConversionRecord function
     - Insert conversion metadata with pending status
     - Return conversion ID or error
     - _Requirements: 5.1, 5.2, 5.4_
   
-  - [~] 9.3 Implement conversion status update
+  - [x] 9.3 Implement conversion status update
     - Add updateConversionStatus function to conversions module
     - Update status to completed or failed
     - Store error message for failed conversions
     - _Requirements: 5.1, 5.5_
   
-  - [~] 9.4 Implement user conversions query
+  - [x] 9.4 Implement user conversions query
     - Add getUserConversions function with pagination, filtering, search
     - Join with files table to get file metadata
     - Return conversions array and total count
     - _Requirements: 12.1, 12.3, 12.5, 12.6_
   
-  - [~] 9.5 Write unit tests for database utilities
+  - [x] 9.5 Write unit tests for database utilities
     - Test createFileRecord inserts correctly
     - Test createConversionRecord creates pending record
     - Test updateConversionStatus updates status
@@ -176,7 +176,7 @@ This implementation plan transforms the FluxConvert application from a simple co
     - _Requirements: 5.1, 5.2, 5.4, 5.5_
 
 - [ ] 10. Enhance Word to PDF API with storage integration
-  - [~] 10.1 Add file upload to storage before conversion
+  - [x] 10.1 Add file upload to storage before conversion
     - Update `app/api/convert/word-to-pdf/route.ts` to upload input file to 'uploads' bucket
     - Generate unique storage path using user ID and timestamp
     - Create file record in database
