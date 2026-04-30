@@ -394,15 +394,15 @@ This implementation plan transforms the FluxConvert application from a simple co
     - Test unauthenticated user gets 401
     - _Requirements: 12.1, 12.3, 12.5, 12.6_
 
-- [ ] 21. Create download endpoint for conversions
-  - [~] 21.1 Implement GET /api/conversions/[id]/download endpoint
+- [x] 21. Create download endpoint for conversions
+  - [x] 21.1 Implement GET /api/conversions/[id]/download endpoint
     - Create `app/api/conversions/[id]/download/route.ts` to generate fresh signed URL
     - Require authentication
     - Verify user owns the conversion
     - Check if file still exists (status is 'active')
     - _Requirements: 7.5, 12.4_
   
-  - [~] 21.2 Generate and return signed URL
+  - [x] 21.2 Generate and return signed URL
     - Generate signed URL with 1-hour expiration
     - Return URL and expiration timestamp
     - Return 404 if file is deleted
@@ -415,33 +415,33 @@ This implementation plan transforms the FluxConvert application from a simple co
     - Test 401 for unauthenticated users
     - _Requirements: 7.5, 12.4_
 
-- [ ] 22. Enhance ConversionHistory component
-  - [~] 22.1 Implement data fetching from API
+- [x] 22. Enhance ConversionHistory component
+  - [x] 22.1 Implement data fetching from API
     - Update `src/components/dashboard/ConversionHistory.tsx` to fetch from /api/conversions
     - Implement loading state while fetching
     - Handle errors with user-friendly messages
     - _Requirements: 12.1_
   
-  - [~] 22.2 Display conversion records
+  - [x] 22.2 Display conversion records
     - Render list of conversions with file names, types, timestamps, status
     - Order by creation date (newest first)
     - Display empty state when no conversions exist
     - _Requirements: 12.1, 12.2, 12.3_
   
-  - [~] 22.3 Implement pagination controls
+  - [x] 22.3 Implement pagination controls
     - Add pagination UI with page numbers and next/previous buttons
     - Limit to 50 records per page
     - Update URL query parameters when page changes
     - _Requirements: 12.5, 12.6_
   
-  - [~] 22.4 Implement filtering and search
+  - [x] 22.4 Implement filtering and search
     - Add filter dropdown for conversion type
     - Add filter dropdown for status
     - Add search input for filename
     - Update API call when filters change
     - _Requirements: 12.1_
   
-  - [~] 22.5 Add download functionality
+  - [x] 22.5 Add download functionality
     - Add download button for completed conversions
     - Call /api/conversions/[id]/download to get fresh signed URL
     - Trigger download when button clicked
@@ -456,7 +456,7 @@ This implementation plan transforms the FluxConvert application from a simple co
     - Test download button calls correct endpoint
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
 
-- [ ] 23. Checkpoint - Verify Phase 5 completion
+- [x] 23. Checkpoint - Verify Phase 5 completion
   - Ensure all tests pass, verify conversion history displays correctly, confirm download functionality works. Ask the user if questions arise.
 
 ### Phase 6: Testing and Polish
