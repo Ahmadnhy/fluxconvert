@@ -1,17 +1,17 @@
-# Storage Policies Quick Reference Card
+# Kartu Referensi Cepat Storage Policy
 
-**Task 7.2** - Quick reference for creating Supabase storage policies
+**Task 7.2** - Referensi cepat untuk membuat storage policy Supabase
 
 ---
 
-## Complete SQL Script (Copy & Run)
+## Script SQL Lengkap (Copy & Jalankan)
 
 ```sql
 -- ============================================================================
--- FluxConvert Storage Policies - Complete Script
+-- FluxConvert Storage Policies - Script Lengkap
 -- ============================================================================
 
--- UPLOADS BUCKET POLICIES
+-- POLICY BUCKET UPLOADS
 
 CREATE POLICY "Users can upload their own files"
 ON storage.objects FOR INSERT TO authenticated
@@ -34,7 +34,7 @@ USING (
   AND auth.uid()::text = (storage.foldername(name))[1]
 );
 
--- CONVERTED BUCKET POLICIES
+-- POLICY BUCKET CONVERTED
 
 CREATE POLICY "Users can read their converted files"
 ON storage.objects FOR SELECT TO authenticated
@@ -60,10 +60,10 @@ USING (
 
 ---
 
-## Verification Query
+## Query Verifikasi
 
 ```sql
--- View all storage policies
+-- Lihat semua storage policy
 SELECT 
   policyname,
   cmd as operation,
@@ -74,11 +74,11 @@ WHERE tablename = 'objects'
 ORDER BY policyname;
 ```
 
-**Expected: 6 policies**
+**Yang Diharapkan: 6 policy**
 
 ---
 
-## Drop Policies (If Needed)
+## Hapus Policy (Jika Diperlukan)
 
 ```sql
 DROP POLICY IF EXISTS "Users can upload their own files" ON storage.objects;
@@ -91,38 +91,38 @@ DROP POLICY IF EXISTS "Users can delete their converted files" ON storage.object
 
 ---
 
-## Policy Summary
+## Ringkasan Policy
 
-| Bucket | Operation | Who | Purpose |
-|--------|-----------|-----|---------|
-| uploads | INSERT | authenticated | Users upload input files |
-| uploads | SELECT | authenticated | Users download their files |
-| uploads | DELETE | authenticated | Users delete their files |
-| converted | SELECT | authenticated | Users download converted files |
-| converted | INSERT | authenticated | Service writes converted files |
-| converted | DELETE | authenticated | Users delete converted files |
+| Bucket | Operasi | Siapa | Tujuan |
+|--------|---------|-----|---------|
+| uploads | INSERT | authenticated | User upload file input |
+| uploads | SELECT | authenticated | User download file mereka |
+| uploads | DELETE | authenticated | User hapus file mereka |
+| converted | SELECT | authenticated | User download file converted |
+| converted | INSERT | authenticated | Service tulis file converted |
+| converted | DELETE | authenticated | User hapus file converted |
 
 ---
 
-## Quick Steps
+## Langkah Cepat
 
 1. **Supabase Dashboard** → **SQL Editor**
-2. Copy the complete SQL script above
-3. Paste into SQL Editor
-4. Click **Run** or press `Ctrl+Enter`
-5. Run verification query to confirm 6 policies created
-6. Done! ✅
+2. Copy script SQL lengkap di atas
+3. Paste ke SQL Editor
+4. Klik **Run** atau tekan `Ctrl+Enter`
+5. Jalankan query verifikasi untuk konfirmasi 6 policy dibuat
+6. Selesai! ✅
 
 ---
 
-## File Path Format
+## Format Path File
 
 ```
 uploads/{user-id}/{filename}
 converted/{user-id}/{filename}
 ```
 
-**Example:**
+**Contoh:**
 ```
 uploads/123e4567-e89b-12d3-a456-426614174000/document.docx
 converted/123e4567-e89b-12d3-a456-426614174000/document.pdf
@@ -130,33 +130,33 @@ converted/123e4567-e89b-12d3-a456-426614174000/document.pdf
 
 ---
 
-## Common Issues
+## Masalah Umum
 
 **"Policy already exists"**
-→ Run drop policies script first, then recreate
+→ Jalankan script hapus policy terlebih dahulu, lalu buat ulang
 
-**"Permission denied" when uploading**
-→ Check user is authenticated and path format is correct
+**"Permission denied" saat upload**
+→ Cek user sudah terautentikasi dan format path sudah benar
 
-**Policies created but still errors**
-→ Verify bucket names are exactly 'uploads' and 'converted'
+**Policy dibuat tapi masih error**
+→ Verifikasi nama bucket persis 'uploads' dan 'converted'
 
 ---
 
 ## Testing
 
 ```javascript
-// Test upload (should succeed)
+// Test upload (harus berhasil)
 await supabase.storage
   .from('uploads')
   .upload(`${userId}/test.txt`, file);
 
-// Test download (should succeed)
+// Test download (harus berhasil)
 await supabase.storage
   .from('uploads')
   .download(`${userId}/test.txt`);
 
-// Test access other user's file (should fail)
+// Test akses file user lain (harus gagal)
 await supabase.storage
   .from('uploads')
   .download(`other-user-id/test.txt`);
@@ -164,7 +164,6 @@ await supabase.storage
 
 ---
 
-**Full Guide**: See `supabase/STORAGE_POLICIES_SETUP.md`  
+**Panduan Lengkap**: Lihat `supabase/STORAGE_POLICIES_SETUP_ID.md`  
 **Requirements**: 6.1, 6.2, 6.3  
-**Next Task**: 8.1-8.4 (Storage utility functions)
-
+**Task Selanjutnya**: 8.1-8.4 (Fungsi utility storage)
