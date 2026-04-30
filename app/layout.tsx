@@ -25,7 +25,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FileRefine - Precise tools for creative professionals",
+  title: "FluxConvert - Precise tools for creative professionals",
   description: "Professional-grade tools to merge, split, and convert your documents securely and instantly.",
 };
 
@@ -45,7 +45,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/src/lib/supabase/server';
 import ConversionHistory from '@/src/components/dashboard/ConversionHistory';
+import UserProfile from '@/src/components/UserProfile';
 import Link from 'next/link';
 
 export const metadata = {
@@ -18,13 +19,6 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/login');
   }
-
-  const handleSignOut = async () => {
-    'use server';
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-    redirect('/');
-  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
@@ -48,20 +42,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-[#5b8ba8] text-sm font-medium hover:text-[#4a7a94] transition-colors"
-            >
-              Dashboard
-            </Link>
-            <form action={handleSignOut}>
-              <button
-                type="submit"
-                className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors"
-              >
-                Logout
-              </button>
-            </form>
+            <UserProfile userEmail={user.email || ''} />
           </div>
         </div>
       </nav>
@@ -131,7 +112,7 @@ export default async function DashboardPage() {
             FluxConvert
           </div>
           <div className="text-sm text-gray-600">
-            © 2024 FluxConvert. All rights reserved.
+            © {new Date().getFullYear()} FluxConvert. All rights reserved.
           </div>
         </div>
       </footer>

@@ -46,35 +46,72 @@ export async function POST(request: NextRequest) {
     // Create PDF document
     const pdfDoc = await PDFDocument.create();
     
-    // Add a page
-    const page = pdfDoc.addPage([595.28, 841.89]); // A4 size in points
-    const { width, height } = page.getSize();
-    
-    // Parse HTML and extract text (simplified version)
-    // In production, you'd want to use a proper HTML to PDF library
+    // Parse HTML and extract text
     const textContent = html.replace(/<[^>]*>/g, '\n').trim();
     const lines = textContent.split('\n').filter(line => line.trim());
     
-    // Add text to PDF
+    // Add text to PDF with proper pagination
     const fontSize = 12;
-    const lineHeight = fontSize * 1.2;
-    let yPosition = height - 50;
+    const lineHeight = fontSize * 1.5;
+    const margin = 50;
+    const pageWidth = 595.28; // A4 width
+    const pageHeight = 841.89; // A4 height
+    const maxWidth = pageWidth - (margin * 2);
+    
+    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+    let yPosition = pageHeight - margin;
     
     for (const line of lines) {
-      if (yPosition < 50) {
-        // Add new page if needed
-        const newPage = pdfDoc.addPage([595.28, 841.89]);
-        yPosition = newPage.getSize().height - 50;
+      if (!line.trim()) continue;
+      
+      // Check if we need a new page
+      if (yPosition < margin + lineHeight) {
+        currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+        yPosition = pageHeight - margin;
       }
       
-      page.drawText(line.substring(0, 80), { // Limit line length
-        x: 50,
-        y: yPosition,
-        size: fontSize,
-        color: rgb(0, 0, 0),
-      });
+      // Wrap text if too long
+      const words = line.split(' ');
+      let currentLine = '';
       
-      yPosition -= lineHeight;
+      for (const word of words) {
+        const testLine = currentLine + (currentLine ? ' ' : '') + word;
+        const textWidth = testLine.length * (fontSize * 0.5); // Approximate width
+        
+        if (textWidth > maxWidth && currentLine) {
+          // Draw current line
+          currentPage.drawText(currentLine, {
+            x: margin,
+            y: yPosition,
+            size: fontSize,
+            color: rgb(0, 0, 0),
+          });
+          
+          yPosition -= lineHeight;
+          
+          // Check if we need a new page
+          if (yPosition < margin + lineHeight) {
+            currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+            yPosition = pageHeight - margin;
+          }
+          
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      
+      // Draw remaining text
+      if (currentLine) {
+        currentPage.drawText(currentLine, {
+          x: margin,
+          y: yPosition,
+          size: fontSize,
+          color: rgb(0, 0, 0),
+        });
+        
+        yPosition -= lineHeight;
+      }
     }
 
     // Serialize PDF to bytes

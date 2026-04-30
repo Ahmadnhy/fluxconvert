@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createClient } from '@/src/lib/supabase/client';
+import UserProfile from '@/src/components/UserProfile';
 
 interface UploadedFile {
   file: File;
@@ -28,6 +30,25 @@ export default function WordToPdfConverter() {
     message: '',
   });
   const [error, setError] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserEmail(user?.email || null);
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     setError('');
@@ -135,8 +156,14 @@ export default function WordToPdfConverter() {
   };
 
   const handleDownload = () => {
-    if (conversionStatus.downloadUrl) {
-      window.open(conversionStatus.downloadUrl, '_blank');
+    if (conversionStatus.downloadUrl && conversionStatus.convertedFileName) {
+      // Create a proper download link
+      const link = document.createElement('a');
+      link.href = conversionStatus.downloadUrl;
+      link.download = conversionStatus.convertedFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -176,12 +203,20 @@ export default function WordToPdfConverter() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors" href="/login">
-              Login
-            </Link>
-            <Link className="bg-[#5b8ba8] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#4a7a94] transition-colors" href="/register">
-              Sign Up
-            </Link>
+            {isLoading ? (
+              <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
+            ) : userEmail ? (
+              <UserProfile userEmail={userEmail} />
+            ) : (
+              <>
+                <Link className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors" href="/login">
+                  Login
+                </Link>
+                <Link className="bg-[#5b8ba8] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#4a7a94] transition-colors" href="/register">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -414,7 +449,7 @@ export default function WordToPdfConverter() {
             </Link>
           </div>
           <div className="text-sm text-gray-600">
-            © 2024 FluxConvert. All rights reserved.
+            © {new Date().getFullYear()} FluxConvert. All rights reserved.
           </div>
         </div>
       </footer>

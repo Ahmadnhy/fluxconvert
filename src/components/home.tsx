@@ -1,16 +1,39 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/src/lib/supabase/client';
+import UserProfile from '@/src/components/UserProfile';
 
 export default function Home() {
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserEmail(user?.email || null);
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#1a1c1e] font-body-md antialiased flex flex-col">
       {/* TopNavBar */}
       <nav className="bg-white border-b border-gray-200 w-full sticky top-0 z-50">
         <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-8">
-            <Link className="text-[#1a1c1e] font-semibold text-lg" href="#">
-              FileRefine
+            <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
+              FluxConvert
             </Link>
             <div className="hidden md:flex gap-6 text-sm font-medium">
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="#">
@@ -31,12 +54,20 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors" href="#">
-              Login
-            </Link>
-            <Link className="bg-[#5b8ba8] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#4a7a94] transition-colors" href="#">
-              Sign Up
-            </Link>
+            {isLoading ? (
+              <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
+            ) : userEmail ? (
+              <UserProfile userEmail={userEmail} />
+            ) : (
+              <>
+                <Link className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors" href="/login">
+                  Login
+                </Link>
+                <Link className="bg-[#5b8ba8] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#4a7a94] transition-colors" href="/register">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -166,8 +197,8 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200 mt-16 w-full">
         <div className="max-w-7xl mx-auto py-8 px-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-[#1a1c1e] font-semibold text-base">FileRefine</span>
-            <span className="text-sm text-gray-600 ml-2">© 2024 FileRefine. Precise tools for creative professionals.</span>
+            <span className="text-[#1a1c1e] font-semibold text-base">FluxConvert</span>
+            <span className="text-sm text-gray-600 ml-2">© {new Date().getFullYear()} FluxConvert. Precise tools for creative professionals.</span>
           </div>
           <div className="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2 text-sm text-gray-600">
             <Link className="hover:text-gray-900 transition-colors" href="#">
