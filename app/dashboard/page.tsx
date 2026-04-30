@@ -33,11 +33,17 @@ export default async function DashboardPage() {
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
                 Word to PDF
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
-                PDF to Word
+              <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/dashboard">
+                Dashboard
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
-                JPG to PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/privacy">
+                Privacy
+              </Link>
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/terms">
+                Terms
+              </Link>
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/help-center">
+                Help Center
               </Link>
             </div>
           </div>
@@ -110,6 +116,17 @@ export default async function DashboardPage() {
         <div className="max-w-7xl mx-auto py-8 px-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-base font-semibold text-[#1a1c1e]">
             FluxConvert
+          </div>
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
+            <Link className="hover:text-gray-900 transition-colors" href="/privacy">
+              Privacy Policy
+            </Link>
+            <Link className="hover:text-gray-900 transition-colors" href="/terms">
+              Terms of Service
+            </Link>
+            <Link className="hover:text-gray-900 transition-colors" href="/help-center">
+              Help Center
+            </Link>
           </div>
           <div className="text-sm text-gray-600">
             © {new Date().getFullYear()} FluxConvert. All rights reserved.

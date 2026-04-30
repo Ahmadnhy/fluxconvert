@@ -54,27 +54,34 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ## Step 5: Create Storage Buckets
 
+The application requires two storage buckets for file management:
+
+1. **uploads** - Stores user-uploaded input files (private, 50 MB limit)
+2. **converted** - Stores converted output files (private, 100 MB limit)
+
+**📖 Detailed Instructions**: See `supabase/STORAGE_BUCKETS_SETUP.md` for complete step-by-step instructions with:
+- Exact configuration settings for each bucket
+- MIME type specifications
+- Troubleshooting guide
+- Verification checklist
+
+### Quick Summary
+
 1. In your Supabase dashboard, go to **Storage**
-2. Click "Create a new bucket"
-3. Create three buckets with these settings:
+2. Click "New bucket"
+3. Create the **uploads** bucket:
+   - Name: `uploads`
+   - Public: **OFF** (private)
+   - File size limit: **50 MB** (52428800 bytes)
+   - Allowed MIME types: `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `application/msword`, `image/jpeg`, `image/png`, `application/pdf`
 
-### Bucket 1: uploads
-- **Name**: `uploads`
-- **Public**: OFF (private)
-- **File size limit**: 50 MB
-- **Allowed MIME types**: Leave empty (all types)
+4. Create the **converted** bucket:
+   - Name: `converted`
+   - Public: **OFF** (private)
+   - File size limit: **100 MB** (104857600 bytes)
+   - Allowed MIME types: `application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `image/jpeg`, `image/png`
 
-### Bucket 2: converted
-- **Name**: `converted`
-- **Public**: OFF (private)
-- **File size limit**: 100 MB
-- **Allowed MIME types**: Leave empty (all types)
-
-### Bucket 3: temp
-- **Name**: `temp`
-- **Public**: OFF (private)
-- **File size limit**: 100 MB
-- **Allowed MIME types**: Leave empty (all types)
+**⚠️ Important**: Both buckets must be **private** (not public) for security. Files are accessed via signed URLs.
 
 ## Step 6: Configure Storage Policies
 

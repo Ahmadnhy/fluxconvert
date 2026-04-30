@@ -188,17 +188,17 @@ export default function WordToPdfConverter() {
               <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/word-to-pdf">
                 Word to PDF
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
-                PDF to Word
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
+                Dashboard
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
-                JPG to PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/privacy">
+                Privacy
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/merge-pdf">
-                Merge PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/terms">
+                Terms
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/split-pdf">
-                Split PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/help-center">
+                Help Center
               </Link>
             </div>
           </div>
@@ -435,17 +435,14 @@ export default function WordToPdfConverter() {
             <Link className="hover:text-gray-900 transition-colors" href="/">
               Home
             </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="/tools">
-              Tools
-            </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="/pricing">
-              Pricing
-            </Link>
             <Link className="hover:text-gray-900 transition-colors" href="/privacy">
               Privacy Policy
             </Link>
             <Link className="hover:text-gray-900 transition-colors" href="/terms">
               Terms of Service
+            </Link>
+            <Link className="hover:text-gray-900 transition-colors" href="/help-center">
+              Help Center
             </Link>
           </div>
           <div className="text-sm text-gray-600">

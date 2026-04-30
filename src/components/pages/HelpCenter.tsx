@@ -55,20 +55,18 @@ export default function HelpCenter() {
               FluxConvert
             </Link>
             <div className="hidden md:flex gap-6 text-sm font-medium">
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
-                Word to PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
+                Dashboard
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/merge-pdf">
-                Merge PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/privacy">
+                Privacy
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/split-pdf">
-                Split PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/terms">
+                Terms
               </Link>
-              {userEmail && (
-                <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
-                  Dashboard
-                </Link>
-              )}
+              <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/help-center">
+                Help Center
+              </Link>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -226,16 +224,13 @@ export default function HelpCenter() {
             FluxConvert
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
-            <Link className="hover:text-gray-900 transition-colors" href="/">
-              Home
-            </Link>
             <Link className="hover:text-gray-900 transition-colors" href="/privacy">
               Privacy Policy
             </Link>
             <Link className="hover:text-gray-900 transition-colors" href="/terms">
               Terms of Service
             </Link>
-            <Link className="hover:text-gray-900 transition-colors font-medium text-gray-900" href="/help-center">
+            <Link className="hover:text-gray-900 transition-colors" href="/help-center">
               Help Center
             </Link>
           </div>

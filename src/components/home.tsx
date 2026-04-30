@@ -36,20 +36,17 @@ export default function Home() {
               FluxConvert
             </Link>
             <div className="hidden md:flex gap-6 text-sm font-medium">
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="#">
-                Merge PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
+                Dashboard
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="#">
-                Split PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/privacy">
+                Privacy
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="#">
-                Compress PDF
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/terms">
+                Terms
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="#">
-                Convert
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="#">
-                Pricing
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/help-center">
+                Help Center
               </Link>
             </div>
           </div>
@@ -74,35 +71,15 @@ export default function Home() {
 
       <main className="flex-1 max-w-7xl mx-auto px-6 w-full">
         {/* Hero Section */}
-        <section className="py-16 flex flex-col items-center text-center max-w-3xl mx-auto">
-          <div className="space-y-4 mb-12">
-            <h1 className="text-4xl font-bold text-[#1a1c1e] tracking-tight">
-              Effortless File Conversion
+        <section className="py-20 flex flex-col items-center text-center max-w-3xl mx-auto">
+          <div className="space-y-6">
+            <h1 className="text-5xl font-bold text-[#1a1c1e] tracking-tight">
+              Welcome to FluxConvert
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Professional-grade tools to merge, split, and convert your documents securely and instantly. No fuss, just precise utility.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Professional-grade tools to merge, split, and convert your documents securely and instantly. Choose from our suite of conversion tools below to get started.
             </p>
           </div>
-
-          {/* Main Upload Zone */}
-          <div className="w-full max-w-2xl bg-white border-2 border-dashed border-gray-300 rounded-lg p-16 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[#5b8ba8] hover:bg-gray-50 transition-all">
-            <div className="w-16 h-16 flex items-center justify-center">
-              <svg className="w-16 h-16 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <div className="space-y-2 text-center">
-              <h3 className="text-xl font-semibold text-[#1a1c1e]">Drag & Drop files here</h3>
-              <p className="text-sm text-gray-500">or click to browse your device</p>
-            </div>
-            <button className="mt-4 bg-[#5b8ba8] text-white px-6 py-2.5 rounded text-sm font-medium hover:bg-[#4a7a94] transition-colors flex items-center gap-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-              </svg>
-              Select Files
-            </button>
-          </div>
-          <p className="text-sm text-gray-500 mt-6">Supports PDF, Word, JPG, PNG & more up to 50MB</p>
         </section>
 
         {/* Tools Grid */}
@@ -201,22 +178,13 @@ export default function Home() {
             <span className="text-sm text-gray-600 ml-2">© {new Date().getFullYear()} FluxConvert. Precise tools for creative professionals.</span>
           </div>
           <div className="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2 text-sm text-gray-600">
-            <Link className="hover:text-gray-900 transition-colors" href="#">
-              Tools
-            </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="#">
-              Developer API
-            </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="#">
-              Pricing
-            </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="#">
+            <Link className="hover:text-gray-900 transition-colors" href="/privacy">
               Privacy Policy
             </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="#">
+            <Link className="hover:text-gray-900 transition-colors" href="/terms">
               Terms of Service
             </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="#">
+            <Link className="hover:text-gray-900 transition-colors" href="/help-center">
               Help Center
             </Link>
           </div>

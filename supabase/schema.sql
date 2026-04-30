@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS public.files (
     storage_path TEXT NOT NULL,
     storage_bucket TEXT NOT NULL,
     
+    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'deleted')),
+    
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -48,6 +50,8 @@ CREATE TABLE IF NOT EXISTS public.conversions (
 -- INDEXES for better query performance
 CREATE INDEX IF NOT EXISTS idx_files_user_id ON public.files(user_id);
 CREATE INDEX IF NOT EXISTS idx_files_created_at ON public.files(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_files_status ON public.files(status);
+CREATE INDEX IF NOT EXISTS idx_files_created_at_status ON public.files(created_at DESC, status);
 CREATE INDEX IF NOT EXISTS idx_conversions_user_id ON public.conversions(user_id);
 CREATE INDEX IF NOT EXISTS idx_conversions_created_at ON public.conversions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_conversions_status ON public.conversions(status);
