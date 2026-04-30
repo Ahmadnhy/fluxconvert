@@ -224,7 +224,7 @@
 
 ### 3.3 Fix file upload error
 
-- [ ] 3.3 Fix file upload error
+- [x] 3.3 Fix file upload error
 
   - [ ] 3.3.1 Investigate Supabase Storage bucket policies
     - Check RLS policies on 'uploads' bucket in Supabase Dashboard
@@ -281,7 +281,7 @@
 
 ### 3.4 Checkpoint - Ensure all Bug 3 tests pass
 
-- [ ] 3.4 Checkpoint - Ensure all Bug 3 tests pass
+- [x] 3.4 Checkpoint - Ensure all Bug 3 tests pass
   - Verify authenticated users can upload files successfully
   - Verify files appear in Supabase Storage
   - Verify unauthenticated conversions work as before
