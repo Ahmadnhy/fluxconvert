@@ -38,6 +38,12 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+CRON_SECRET=your_secure_random_secret_here
+```
+
+Generate a secure `CRON_SECRET`:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 4. **Set up Supabase**
@@ -96,6 +102,7 @@ Navigate to `http://localhost:3000`
 * ✅ **Supabase Storage** - File storage with 3 buckets
 * ✅ **Row Level Security** - Secure data access
 * ✅ **User Profiles** - Extended user data
+* ✅ **Automated File Cleanup** - Daily cleanup of files older than 7 days
 
 #### 🌙 UI / UX Features
 
@@ -266,8 +273,10 @@ Response:
 
 1. Push your code to GitHub
 2. Import project in Vercel
-3. Add environment variables
+3. Add environment variables (including `CRON_SECRET`)
 4. Deploy
+
+**Note:** The automated file cleanup cron job will only work in production on Vercel. See [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for detailed setup instructions.
 
 ### Environment Variables for Production
 
@@ -276,7 +285,10 @@ NEXT_PUBLIC_SUPABASE_URL=your_production_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_production_service_key
 NEXT_PUBLIC_APP_URL=https://your-domain.com
+CRON_SECRET=your_secure_random_secret_here
 ```
+
+**Important:** Generate a strong `CRON_SECRET` for production. See [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for details.
 
 ---
 
@@ -314,9 +326,9 @@ npm start
 - [ ] Conversion options (page size, orientation, quality)
 - [ ] File compression
 
-### Phase 4: Optimization 🔄
-- [ ] Rate limiting
-- [ ] Automated file cleanup
+### Phase 4: Optimization ✅
+- [x] Rate limiting
+- [x] Automated file cleanup
 - [ ] Performance optimization
 - [ ] Better error handling
 - [ ] Analytics
@@ -360,8 +372,9 @@ App & Web Developer
 
 For issues and questions:
 1. Check [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for setup help
-2. Review the code documentation
-3. Open an issue on GitHub
+2. Check [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for cron job setup
+3. Review the code documentation
+4. Open an issue on GitHub
 
 ---
 

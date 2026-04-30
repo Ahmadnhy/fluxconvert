@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/src/lib/supabase/client';
 import UserProfile from '@/src/components/UserProfile';
+import { useQuota } from '@/src/contexts/QuotaContext';
 
 interface UploadedFile {
   file: File;
@@ -22,6 +23,20 @@ interface ConversionStatus {
   convertedFileSize?: string;
 }
 
+interface RateLimitInfo {
+  retryAfter: number; // seconds until reset
+  limit: number;
+  remaining: number;
+  resetAt: Date;
+}
+
+interface QuotaData {
+  limit: number;
+  used: number;
+  remaining: number;
+  resetAt: string;
+}
+
 export default function WordToPdfConverter() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [conversionStatus, setConversionStatus] = useState<ConversionStatus>({
@@ -32,14 +47,26 @@ export default function WordToPdfConverter() {
   const [error, setError] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [quota, setQuota] = useState<QuotaData | null>(null);
+  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null);
+  const { refreshQuota } = useQuota();
 
-  // Check authentication status
+  // Check authentication status and fetch quota
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         setUserEmail(user?.email || null);
+
+        // Fetch quota if user is authenticated
+        if (user) {
+          const response = await fetch('/api/quota');
+          if (response.ok) {
+            const quotaData = await response.json();
+            setQuota(quotaData);
+          }
+        }
       } catch (error) {
         console.error('Auth check error:', error);
       } finally {
@@ -116,6 +143,22 @@ export default function WordToPdfConverter() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Handle 429 rate limit error
+        if (response.status === 429) {
+          const retryAfter = errorData.retryAfter || 3600; // Default to 1 hour
+          const resetAt = new Date(Date.now() + retryAfter * 1000);
+          
+          setRateLimitInfo({
+            retryAfter,
+            limit: errorData.limit || 10,
+            remaining: errorData.remaining || 0,
+            resetAt,
+          });
+          
+          throw new Error(`Rate limit exceeded. Please try again at ${resetAt.toLocaleTimeString()}`);
+        }
+        
         throw new Error(errorData.error || 'Conversion failed');
       }
 
@@ -135,6 +178,17 @@ export default function WordToPdfConverter() {
         convertedFileName: result.fileName,
         convertedFileSize: result.fileSize,
       });
+
+      // Refresh quota display after successful conversion
+      if (userEmail) {
+        refreshQuota();
+        // Also refresh local quota state
+        const response = await fetch('/api/quota');
+        if (response.ok) {
+          const quotaData = await response.json();
+          setQuota(quotaData);
+        }
+      }
     } catch (err: any) {
       setConversionStatus({
         status: 'error',
@@ -153,6 +207,7 @@ export default function WordToPdfConverter() {
       message: '',
     });
     setError('');
+    setRateLimitInfo(null); // Clear rate limit info when removing file
   };
 
   const handleDownload = () => {
@@ -173,6 +228,19 @@ export default function WordToPdfConverter() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Check if conversion should be disabled due to rate limiting
+  const isRateLimited = () => {
+    if (rateLimitInfo) {
+      // Check if we're still within the rate limit window
+      return Date.now() < rateLimitInfo.resetAt.getTime();
+    }
+    // Also check quota if available
+    if (userEmail && quota && quota.remaining === 0) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -250,6 +318,44 @@ export default function WordToPdfConverter() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Quota Exceeded Warning */}
+        {userEmail && quota && quota.remaining === 0 && (
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+            <div className="flex items-start gap-2">
+              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="font-medium mb-1">Conversion Limit Reached</p>
+                <p className="text-sm">
+                  You've used all {quota.limit} conversions for this hour. Your quota will reset at{' '}
+                  <span className="font-semibold">{new Date(quota.resetAt).toLocaleTimeString()}</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rate Limit Warning (429 response) */}
+        {rateLimitInfo && isRateLimited() && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            <div className="flex items-start gap-2">
+              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="font-medium mb-1">Rate Limit Exceeded</p>
+                <p className="text-sm">
+                  You've reached the maximum of {rateLimitInfo.limit} conversions per hour. 
+                  Please try again at{' '}
+                  <span className="font-semibold">{rateLimitInfo.resetAt.toLocaleTimeString()}</span>
+                  {' '}({Math.ceil(rateLimitInfo.retryAfter / 60)} minutes).
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Upload Area or File Preview */}
         {uploadedFiles.length === 0 ? (
@@ -354,7 +460,8 @@ export default function WordToPdfConverter() {
                 <>
                   <button
                     onClick={handleConvert}
-                    className="flex-1 bg-[#5b8ba8] text-white px-6 py-3 rounded-lg text-base font-medium hover:bg-[#4a7a94] transition-colors flex items-center justify-center gap-2"
+                    disabled={isRateLimited()}
+                    className="flex-1 bg-[#5b8ba8] text-white px-6 py-3 rounded-lg text-base font-medium hover:bg-[#4a7a94] transition-colors flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

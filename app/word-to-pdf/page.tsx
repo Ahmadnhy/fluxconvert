@@ -1,4 +1,5 @@
 import WordToPdfConverter from '@/src/components/converters/WordToPdfConverter';
+import { QuotaProvider } from '@/src/contexts/QuotaContext';
 
 export const metadata = {
   title: 'Word to PDF Converter - FluxConvert',
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function WordToPdfPage() {
-  return <WordToPdfConverter />;
+  return (
+    <QuotaProvider>
+      <WordToPdfConverter />
+    </QuotaProvider>
+  );
 }

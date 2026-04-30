@@ -204,6 +204,26 @@ describe('Dashboard Page', () => {
       expect(pageSource).toContain("import UserProfile from '@/src/components/UserProfile'");
       expect(pageSource).toContain('<UserProfile');
     });
+
+    /**
+     * **Validates: Requirements 9.1, 9.2, 9.4**
+     * Verifies that the QuotaDisplay component is integrated into the dashboard
+     */
+    it('should integrate QuotaDisplay component', () => {
+      // Verify QuotaDisplay component is imported and used
+      expect(pageSource).toContain("import QuotaDisplay from '@/src/components/dashboard/QuotaDisplay'");
+      expect(pageSource).toContain('<QuotaDisplay />');
+    });
+
+    it('should display QuotaDisplay before quick action cards', () => {
+      // Verify QuotaDisplay appears before quick actions
+      const quotaDisplayIndex = pageSource.indexOf('<QuotaDisplay />');
+      const quickActionsIndex = pageSource.indexOf('grid grid-cols-1 md:grid-cols-3');
+      
+      expect(quotaDisplayIndex).toBeGreaterThan(-1);
+      expect(quickActionsIndex).toBeGreaterThan(-1);
+      expect(quotaDisplayIndex).toBeLessThan(quickActionsIndex);
+    });
   });
 
   describe('Page Metadata', () => {
