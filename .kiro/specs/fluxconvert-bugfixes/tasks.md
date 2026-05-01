@@ -293,7 +293,7 @@
 
 ### 4.1 Write bug condition exploration test
 
-- [ ] 4.1 Write bug condition exploration test
+- [x] 4.1 Write bug condition exploration test
   - **Property 1: Bug Condition** - Download Opens in Browser Instead of Downloading
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -313,7 +313,7 @@
 
 ### 4.2 Write preservation property tests (BEFORE implementing fix)
 
-- [ ] 4.2 Write preservation property tests (BEFORE implementing fix)
+- [x] 4.2 Write preservation property tests (BEFORE implementing fix)
   - **Property 2: Preservation** - Download Access Control Unchanged
   - **IMPORTANT**: Follow observation-first methodology
   - Observe behavior on UNFIXED code: download access control works correctly (404 for deleted files, 403 for unauthorized access)
@@ -330,9 +330,9 @@
 
 ### 4.3 Fix download behavior
 
-- [ ] 4.3 Fix download behavior
+- [-] 4.3 Fix download behavior
 
-  - [ ] 4.3.1 Research Supabase Storage download options
+  - [x] 4.3.1 Research Supabase Storage download options
     - Check if `createSignedUrl` supports a `download` parameter or option
     - Review Supabase Storage documentation for Content-Disposition header support
     - Determine the best approach: download parameter, client-side fetch, or proxy endpoint
@@ -342,7 +342,7 @@
     - _Preservation: Download access control and URL expiration work exactly as before_
     - _Requirements: 2.9, 2.10, 2.11, 3.8, 3.9, 3.10_
 
-  - [ ] 4.3.2 Implement download fix (Approach 1: Add download parameter to signed URL)
+  - [x] 4.3.2 Implement download fix (Approach 1: Add download parameter to signed URL)
     - Modify `generateSignedUrl` in `src/lib/storage/signedUrls.ts`
     - Add download option to `createSignedUrl` call if supported by Supabase:
       ```typescript
@@ -388,7 +388,7 @@
       ```
     - _Requirements: 2.9, 2.10, 2.11_
 
-  - [ ] 4.3.5 Verify bug condition exploration test now passes
+  - [x] 4.3.5 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Download Triggers File Save
     - **IMPORTANT**: Re-run the SAME test from task 4.1 - do NOT write a new test
     - The test from task 4.1 encodes the expected behavior
@@ -400,7 +400,7 @@
     - Test in multiple browsers (Chrome, Firefox, Safari)
     - _Requirements: 2.9, 2.10, 2.11_
 
-  - [ ] 4.3.6 Verify preservation tests still pass
+  - [x] 4.3.6 Verify preservation tests still pass
     - **Property 2: Preservation** - Download Access Control Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 4.2 - do NOT write new tests
     - Run preservation property tests from step 4.2
@@ -413,7 +413,7 @@
 
 ### 4.4 Checkpoint - Ensure all Bug 4 tests pass
 
-- [ ] 4.4 Checkpoint - Ensure all Bug 4 tests pass
+- [x] 4.4 Checkpoint - Ensure all Bug 4 tests pass
   - Verify download button triggers direct file download
   - Verify download access control works correctly
   - Verify URL expiration still works
@@ -423,7 +423,7 @@
 
 ## Final Checkpoint
 
-- [ ] 5. Final Checkpoint - Ensure all tests pass
+- [x] 5. Final Checkpoint - Ensure all tests pass
   - Run all exploration tests and verify they pass (bugs are fixed)
   - Run all preservation tests and verify they pass (no regressions)
   - Verify all four bugs are resolved:

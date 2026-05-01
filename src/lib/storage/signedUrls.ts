@@ -16,10 +16,12 @@ export async function generateSignedUrl(
   try {
     const supabase = await createClient();
 
-    // Generate signed URL with specified expiration
+    // Generate signed URL with specified expiration and download option
     const { data, error } = await supabase.storage
       .from(bucket)
-      .createSignedUrl(path, expiresIn);
+      .createSignedUrl(path, expiresIn, {
+        download: true
+      });
 
     if (error) {
       console.error(`Failed to generate signed URL for ${bucket}/${path}:`, error);
