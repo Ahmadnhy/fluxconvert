@@ -28,6 +28,18 @@ FOR INSERT
 TO authenticated
 WITH CHECK (bucket_id = 'uploads');
 
+-- Policy 1a: Allow anonymous users to INSERT files to 'uploads' bucket
+-- Anonymous users can only upload to anonymous/* paths
+-- This enables anonymous Word to PDF conversions without requiring login
+CREATE POLICY "Allow anonymous uploads"
+ON storage.objects
+FOR INSERT
+TO anon
+WITH CHECK (
+    bucket_id = 'uploads' 
+    AND (storage.foldername(name))[1] = 'anonymous'
+);
+
 -- Policy 2: Allow authenticated users to SELECT their own files from 'uploads' bucket
 -- This allows users to read files they uploaded
 CREATE POLICY "Allow authenticated users to read their own uploads"
@@ -73,6 +85,18 @@ FOR INSERT
 TO authenticated
 WITH CHECK (bucket_id = 'converted');
 
+-- Policy 1a: Allow anonymous users to INSERT files to 'converted' bucket
+-- Anonymous users can only upload to anonymous/* paths
+-- This enables saving conversion output for anonymous users
+CREATE POLICY "Allow anonymous uploads to converted"
+ON storage.objects
+FOR INSERT
+TO anon
+WITH CHECK (
+    bucket_id = 'converted' 
+    AND (storage.foldername(name))[1] = 'anonymous'
+);
+
 -- Policy 2: Allow authenticated users to SELECT their own files from 'converted' bucket
 -- This allows users to download their converted files
 CREATE POLICY "Allow authenticated users to read their own converted files"
@@ -82,6 +106,18 @@ TO authenticated
 USING (
     bucket_id = 'converted' 
     AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Policy 2a: Allow anonymous users to SELECT files from 'converted' bucket
+-- Anonymous users can only read from anonymous/* paths
+-- This enables download URLs for anonymous conversions
+CREATE POLICY "Allow anonymous read from converted"
+ON storage.objects
+FOR SELECT
+TO anon
+USING (
+    bucket_id = 'converted' 
+    AND (storage.foldername(name))[1] = 'anonymous'
 );
 
 -- Policy 3: Allow authenticated users to DELETE their own files from 'converted' bucket
@@ -132,18 +168,34 @@ USING (
 -- ============================================================================
 
 -- File Path Structure:
--- Files are stored with paths like: {user_id}/{timestamp}-{filename}
--- Example: "550e8400-e29b-41d4-a716-446655440000/1704067200000-document.docx"
+-- Authenticated users: {user_id}/{timestamp}-{filename}
+-- Anonymous users: anonymous/{timestamp}-{filename}
+-- Example authenticated: "550e8400-e29b-41d4-a716-446655440000/1704067200000-document.docx"
+-- Example anonymous: "anonymous/1704067200000-document.docx"
 -- 
--- The policy uses storage.foldername(name)[1] to extract the user_id from the path
--- This ensures users can only access files in their own folder
+-- The policy uses storage.foldername(name)[1] to extract the first folder from the path
+-- For authenticated users: ensures users can only access files in their own folder
+-- For anonymous users: restricts access to only the anonymous/ folder
 
 -- Security Considerations:
 -- - All buckets should be set to PRIVATE (not public)
 -- - RLS policies enforce user-level access control
--- - Users can only access files in folders matching their auth.uid()
--- - INSERT policies allow any authenticated user to upload
+-- - Authenticated users can only access files in folders matching their auth.uid()
+-- - Anonymous users can only INSERT/SELECT in anonymous/* paths
+-- - Anonymous users CANNOT DELETE or UPDATE files (no policies granted)
+-- - Authenticated users CANNOT access anonymous/* folder (RLS mismatch)
+-- - Anonymous users CANNOT access {user_id}/* folders (RLS mismatch)
+-- - INSERT policies allow uploads with path restrictions
 -- - SELECT/DELETE/UPDATE policies restrict access to own files only
+
+-- Anonymous User Restrictions:
+-- - Can INSERT to uploads bucket (anonymous/* paths only)
+-- - Can INSERT to converted bucket (anonymous/* paths only)
+-- - Can SELECT from converted bucket (anonymous/* paths only, for download URLs)
+-- - CANNOT DELETE files (no policy granted)
+-- - CANNOT UPDATE files (no policy granted)
+-- - CANNOT SELECT from uploads bucket (no policy granted)
+-- - CANNOT access authenticated user folders (path restriction)
 
 -- Bucket Configuration:
 -- Ensure these buckets exist in Supabase Dashboard > Storage:
