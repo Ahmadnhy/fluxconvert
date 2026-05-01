@@ -1,4 +1,5 @@
 import { createClient } from '@/src/lib/supabase/server';
+import { createServiceClient } from '@/src/lib/supabase/service';
 
 /**
  * File record data for creating a new file entry in the database
@@ -40,7 +41,11 @@ export async function createFileRecord(
   data: FileRecordData
 ): Promise<{ id: string; error?: Error }> {
   try {
-    const supabase = await createClient();
+    // Use service client for anonymous users (bypasses RLS)
+    // Use regular client for authenticated users (respects RLS)
+    const supabase = data.user_id === null 
+      ? createServiceClient()
+      : await createClient();
 
     // Validate required fields
     if (!data.file_name || !data.file_type || !data.storage_path || !data.storage_bucket) {

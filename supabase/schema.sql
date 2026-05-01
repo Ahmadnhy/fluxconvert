@@ -83,7 +83,7 @@ CREATE POLICY "Users can view their own files"
 
 CREATE POLICY "Users can insert their own files"
     ON public.files FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+    WITH CHECK (auth.uid() = user_id OR (auth.uid() IS NULL AND user_id IS NULL));
 
 CREATE POLICY "Users can delete their own files"
     ON public.files FOR DELETE
@@ -96,7 +96,7 @@ CREATE POLICY "Users can view their own conversions"
 
 CREATE POLICY "Users can insert their own conversions"
     ON public.conversions FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+    WITH CHECK (auth.uid() = user_id OR (auth.uid() IS NULL AND user_id IS NULL));
 
 CREATE POLICY "Users can update their own conversions"
     ON public.conversions FOR UPDATE
