@@ -55,6 +55,12 @@ export default function HelpCenter() {
               FluxConvert
             </Link>
             <div className="hidden md:flex gap-6 text-sm font-medium">
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
+                Word to PDF
+              </Link>
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
+                PDF to Word
+              </Link>
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
               </Link>

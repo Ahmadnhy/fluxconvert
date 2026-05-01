@@ -36,6 +36,12 @@ export default function Home() {
               FluxConvert
             </Link>
             <div className="hidden md:flex gap-6 text-sm font-medium">
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
+                Word to PDF
+              </Link>
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
+                PDF to Word
+              </Link>
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
               </Link>
@@ -90,7 +96,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* Tool Card 1 - PDF to Word */}
-            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="#">
+            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="/pdf-to-word">
               <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#5b8ba8]/10 transition-colors">
                 <svg className="w-7 h-7 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

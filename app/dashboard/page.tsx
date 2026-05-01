@@ -33,6 +33,9 @@ export default async function DashboardPage() {
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
                 Word to PDF
               </Link>
+              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
+                PDF to Word
+              </Link>
               <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
               </Link>
