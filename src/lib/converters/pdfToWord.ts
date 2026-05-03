@@ -290,7 +290,7 @@ async function generateDocx(elements: DetectedElement[]): Promise<Buffer> {
 /**
  * Maps heading level (1-6) to docx HeadingLevel enum
  */
-function mapHeadingLevel(level: number): HeadingLevel {
+function mapHeadingLevel(level: number): typeof HeadingLevel[keyof typeof HeadingLevel] {
   switch (level) {
     case 1:
       return HeadingLevel.HEADING_1;
@@ -312,7 +312,7 @@ function mapHeadingLevel(level: number): HeadingLevel {
 /**
  * Maps text alignment to docx AlignmentType enum
  */
-function mapAlignment(alignment?: 'left' | 'center' | 'right' | 'justify'): AlignmentType {
+function mapAlignment(alignment?: 'left' | 'center' | 'right' | 'justify'): typeof AlignmentType[keyof typeof AlignmentType] {
   switch (alignment) {
     case 'center':
       return AlignmentType.CENTER;

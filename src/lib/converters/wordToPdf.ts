@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import mammoth from 'mammoth';
 import * as cheerio from 'cheerio';
-import htmlPdf from 'html-pdf-node';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { createTempFile, cleanupTempFiles } from '../utils/tempFiles';
 
 /**
@@ -30,7 +30,7 @@ export interface WordToPdfConversionResult {
  * Converts a Word document (.docx) to PDF using a multi-step pipeline:
  * 1. DOCX → HTML (using mammoth.js)
  * 2. HTML Structure Enhancement (using cheerio for auto-detection)
- * 3. HTML → PDF (using html-pdf-node)
+ * 3. HTML → PDF (using pdf-lib)
  * 
  * @param options - Conversion options including input/output paths and timeout
  * @returns Promise resolving to conversion result with success status and output path
@@ -166,14 +166,12 @@ async function executePipeline(
   console.log(`[INFO] Word-to-PDF: Step 2 completed in ${step2Duration}ms`);
   console.log(`[INFO] Styled HTML file created: ${styledHtmlTempFile.path}`);
   
-  // Step 3: HTML → PDF using html-pdf-node
+  // Step 3: HTML → PDF using pdf-lib
   console.log('[INFO] Word-to-PDF: Step 3 - HTML→PDF conversion started');
   const step3Start = Date.now();
   
-  const pdfBuffer = await generatePdf(styledHtml);
-  
-  // Write PDF to output path
-  await fs.writeFile(outputPath, pdfBuffer);
+  const pdfBytes = await generatePdf(styledHtml);
+  await fs.writeFile(outputPath, pdfBytes);
   
   const step3Duration = Date.now() - step3Start;
   console.log(`[INFO] Word-to-PDF: Step 3 completed in ${step3Duration}ms`);
@@ -355,29 +353,215 @@ function enhanceHtmlStructure(html: string): string {
 }
 
 /**
- * Generates PDF from HTML using html-pdf-node
+ * Generates PDF from HTML using pdf-lib
+ * Parses HTML structure and renders formatted PDF with proper styling
  */
-async function generatePdf(html: string): Promise<Buffer> {
-  const file = { content: html };
+async function generatePdf(html: string): Promise<Uint8Array> {
+  console.log('[INFO] Generating PDF with pdf-lib');
   
-  const options = {
-    format: 'A4',
-    margin: {
-      top: '20mm',
-      right: '20mm',
-      bottom: '20mm',
-      left: '20mm'
-    },
-    printBackground: true,
-    preferCSSPageSize: false
+  // Create a new PDF document
+  const pdfDoc = await PDFDocument.create();
+  
+  // Parse HTML with cheerio
+  const $ = cheerio.load(html);
+  
+  // Embed fonts
+  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const helveticaObliqueFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+  
+  // Add a page
+  let page = pdfDoc.addPage();
+  const { width, height } = page.getSize();
+  const margin = 50;
+  const maxWidth = width - 2 * margin;
+  let y = height - margin;
+  
+  // Process HTML elements
+  const processElement = (element: any, fontSize: number = 12, font: any = helveticaFont, isBold: boolean = false, isItalic: boolean = false) => {
+    const $el = $(element);
+    const tagName = element.name?.toLowerCase();
+    
+    // Handle text nodes
+    if (element.type === 'text') {
+      const text = $(element).text().trim();
+      if (text) {
+        const lines = wrapText(text, maxWidth, fontSize, font);
+        for (const line of lines) {
+          if (y < margin + 20) {
+            page = pdfDoc.addPage();
+            y = height - margin;
+          }
+          
+          page.drawText(line, {
+            x: margin,
+            y,
+            size: fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          
+          y -= fontSize * 1.5;
+        }
+      }
+      return;
+    }
+    
+    // Handle element nodes
+    if (element.type === 'tag') {
+      switch (tagName) {
+        case 'h1':
+          y -= 10;
+          $el.contents().each((_, child) => processElement(child, 20, helveticaBoldFont, true, false));
+          y -= 10;
+          break;
+          
+        case 'h2':
+          y -= 8;
+          $el.contents().each((_, child) => processElement(child, 16, helveticaBoldFont, true, false));
+          y -= 8;
+          break;
+          
+        case 'h3':
+          y -= 6;
+          $el.contents().each((_, child) => processElement(child, 14, helveticaBoldFont, true, false));
+          y -= 6;
+          break;
+          
+        case 'p':
+          $el.contents().each((_, child) => processElement(child, fontSize, font, isBold, isItalic));
+          y -= 10;
+          break;
+          
+        case 'strong':
+        case 'b':
+          $el.contents().each((_, child) => processElement(child, fontSize, helveticaBoldFont, true, isItalic));
+          break;
+          
+        case 'em':
+        case 'i':
+          $el.contents().each((_, child) => processElement(child, fontSize, helveticaObliqueFont, isBold, true));
+          break;
+          
+        case 'br':
+          y -= fontSize * 1.5;
+          break;
+          
+        case 'table':
+          renderTable($, $el, page, pdfDoc, helveticaFont, helveticaBoldFont);
+          y -= 20;
+          break;
+          
+        case 'ul':
+        case 'ol':
+          renderList($, $el, page, pdfDoc, helveticaFont, tagName === 'ol');
+          y -= 10;
+          break;
+          
+        default:
+          // Recursively process child elements
+          $el.contents().each((_, child) => processElement(child, fontSize, font, isBold, isItalic));
+          break;
+      }
+    }
   };
   
-  console.log('[INFO] Generating PDF with html-pdf-node');
+  // Helper function to wrap text
+  const wrapText = (text: string, maxWidth: number, fontSize: number, font: any): string[] => {
+    const words = text.split(/\s+/);
+    const lines: string[] = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+      
+      if (testWidth > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines;
+  };
   
-  // html-pdf-node returns a Buffer
-  const pdfBuffer = await htmlPdf.generatePdf(file, options);
+  // Helper function to render table
+  const renderTable = ($: cheerio.CheerioAPI, table: cheerio.Cheerio<any>, page: any, pdfDoc: any, font: any, boldFont: any) => {
+    // Simple table rendering - just render as text for now
+    table.find('tr').each((rowIndex, row) => {
+      $(row).find('td, th').each((_, cell) => {
+        const text = $(cell).text().trim();
+        if (text) {
+          const isHeader = $(cell).is('th');
+          const lines = wrapText(text, maxWidth / 2, 10, isHeader ? boldFont : font);
+          for (const line of lines) {
+            if (y < margin + 20) {
+              page = pdfDoc.addPage();
+              y = height - margin;
+            }
+            
+            page.drawText(line, {
+              x: margin + 10,
+              y,
+              size: 10,
+              font: isHeader ? boldFont : font,
+              color: rgb(0, 0, 0),
+            });
+            
+            y -= 15;
+          }
+        }
+      });
+    });
+  };
   
-  console.log(`[INFO] PDF generated successfully, size: ${pdfBuffer.length} bytes`);
+  // Helper function to render list
+  const renderList = ($: cheerio.CheerioAPI, list: cheerio.Cheerio<any>, page: any, pdfDoc: any, font: any, ordered: boolean) => {
+    let index = 1;
+    
+    list.find('li').each((_, item) => {
+      const bullet = ordered ? `${index}. ` : '• ';
+      const text = $(item).text().trim();
+      
+      if (text) {
+        const lines = wrapText(bullet + text, maxWidth - 20, 12, font);
+        for (const line of lines) {
+          if (y < margin + 20) {
+            page = pdfDoc.addPage();
+            y = height - margin;
+          }
+          
+          page.drawText(line, {
+            x: margin + 20,
+            y,
+            size: 12,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          
+          y -= 18;
+        }
+      }
+      
+      index++;
+    });
+  };
   
-  return pdfBuffer;
+  // Process body content
+  $('body').contents().each((_, element) => {
+    processElement(element);
+  });
+  
+  // Serialize the PDF to bytes
+  const pdfBytes = await pdfDoc.save();
+  
+  console.log(`[INFO] PDF generated successfully, size: ${pdfBytes.length} bytes`);
+  
+  return pdfBytes;
 }
