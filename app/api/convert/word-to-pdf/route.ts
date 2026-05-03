@@ -4,10 +4,9 @@ import { uploadFile } from '@/src/lib/storage/operations';
 import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
-import { convertWordToPdf } from '@/src/lib/converters/libreoffice';
-import { createTempFile, createTempDir } from '@/src/lib/utils/tempFiles';
+import { convertWordToPdf } from '@/src/lib/converters/wordToPdf';
+import { createTempFile, cleanupTempFiles } from '@/src/lib/utils/tempFiles';
 import { promises as fs } from 'fs';
-import path from 'path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,8 +15,9 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export async function POST(request: NextRequest) {
   let tempInputFile: { path: string; cleanup: () => Promise<void> } | null = null;
-  let tempOutputDir: { path: string; cleanup: () => Promise<void> } | null = null;
+  let tempOutputFile: { path: string; cleanup: () => Promise<void> } | null = null;
   let conversionId: string | null = null;
+  const intermediateFiles: string[] = [];
 
   try {
     // Get authenticated user (optional - handle both authenticated and unauthenticated users)
@@ -124,26 +124,34 @@ export async function POST(request: NextRequest) {
       extension: 'docx',
     });
 
-    // Create temporary output directory
-    tempOutputDir = await createTempDir();
+    // Create temporary output file path
+    tempOutputFile = await createTempFile(Buffer.from(''), {
+      prefix: 'output',
+      extension: 'pdf',
+    });
 
-    // Call LibreOffice converter with input and output paths
-    console.log(`Starting LibreOffice conversion: ${file.name}`);
+    // Call Word-to-PDF converter with input and output paths (DOCX → HTML → Auto Styling → PDF)
+    console.log(`Starting Word-to-PDF conversion pipeline: ${file.name}`);
+    const pipelineStart = Date.now();
+    
     const conversionResult = await convertWordToPdf({
       inputPath: tempInputFile.path,
-      outputDir: tempOutputDir.path,
+      outputPath: tempOutputFile.path,
       timeout: 120000, // 120 seconds
     });
 
+    const pipelineDuration = Date.now() - pipelineStart;
+    console.log(`[INFO] Word-to-PDF pipeline completed in ${pipelineDuration}ms`);
+
     if (!conversionResult.success) {
-      console.error('LibreOffice conversion failed:', conversionResult.error);
+      console.error('[ERROR] Word-to-PDF pipeline failed:', conversionResult.error);
       
       // Update conversion status to failed (if authenticated user)
       if (userId && conversionId) {
         await updateConversionStatus({
           conversion_id: conversionId,
           status: 'failed',
-          error_message: conversionResult.error || 'LibreOffice conversion failed',
+          error_message: conversionResult.error || 'Word-to-PDF conversion failed',
         });
       }
 
@@ -151,6 +159,14 @@ export async function POST(request: NextRequest) {
         { error: conversionResult.error || 'Conversion failed' },
         { status: 500 }
       );
+    }
+
+    // Track intermediate files for cleanup (HTML, styled HTML)
+    if (conversionResult.intermediateFiles?.htmlPath) {
+      intermediateFiles.push(conversionResult.intermediateFiles.htmlPath);
+    }
+    if (conversionResult.intermediateFiles?.styledHtmlPath) {
+      intermediateFiles.push(conversionResult.intermediateFiles.styledHtmlPath);
     }
 
     // Read generated PDF from temporary directory
@@ -251,7 +267,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Conversion error:', error);
+    console.error('[ERROR] Conversion error:', error);
     
     // Update conversion status to failed if we have a conversion ID
     if (conversionId) {
@@ -267,12 +283,20 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    // Clean up all temporary files in finally block (success or error)
+    // Clean up all temporary files in finally block including intermediate files (HTML, styled HTML)
+    const filesToCleanup: string[] = [];
+    
     if (tempInputFile) {
-      await tempInputFile.cleanup();
+      filesToCleanup.push(tempInputFile.path);
     }
-    if (tempOutputDir) {
-      await tempOutputDir.cleanup();
+    if (tempOutputFile) {
+      filesToCleanup.push(tempOutputFile.path);
+    }
+    // Add intermediate files (HTML, styled HTML)
+    filesToCleanup.push(...intermediateFiles);
+    
+    if (filesToCleanup.length > 0) {
+      await cleanupTempFiles(filesToCleanup);
     }
   }
 }

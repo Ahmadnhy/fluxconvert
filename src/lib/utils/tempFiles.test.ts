@@ -52,6 +52,42 @@ describe('Temporary File Management', () => {
       await cleanup();
     });
 
+    it('should support HTML extension for intermediate files', async () => {
+      const content = Buffer.from('<html><body>Test</body></html>');
+      const { path, cleanup } = await createTempFile(content, {
+        prefix: 'intermediate',
+        extension: 'html'
+      });
+      createdPaths.push(path);
+
+      // Verify filename format
+      const parts = path.split(/[/\\]/);
+      const filename = parts[parts.length - 1];
+      expect(filename).toMatch(/^intermediate-[a-f0-9-]+-\d+\.html$/);
+
+      // Verify content
+      const fileContent = await fs.readFile(path, 'utf-8');
+      expect(fileContent).toBe('<html><body>Test</body></html>');
+
+      await cleanup();
+    });
+
+    it('should support PDF extension for intermediate files', async () => {
+      const content = Buffer.from('PDF content');
+      const { path, cleanup } = await createTempFile(content, {
+        prefix: 'output',
+        extension: 'pdf'
+      });
+      createdPaths.push(path);
+
+      // Verify filename format
+      const parts = path.split(/[/\\]/);
+      const filename = parts[parts.length - 1];
+      expect(filename).toMatch(/^output-[a-f0-9-]+-\d+\.pdf$/);
+
+      await cleanup();
+    });
+
     it('should create a file with default prefix and extension', async () => {
       const content = Buffer.from('test');
       const { path, cleanup } = await createTempFile(content);
@@ -200,6 +236,30 @@ describe('Temporary File Management', () => {
       await expect(fs.access(path2)).rejects.toThrow();
     });
 
+    it('should cleanup intermediate files from conversion pipeline', async () => {
+      // Simulate a multi-step conversion pipeline
+      const inputContent = Buffer.from('input docx');
+      const htmlContent = Buffer.from('<html>intermediate</html>');
+      const styledHtmlContent = Buffer.from('<html><style>...</style>intermediate</html>');
+      const outputContent = Buffer.from('output pdf');
+
+      const { path: inputPath } = await createTempFile(inputContent, { prefix: 'input', extension: 'docx' });
+      const { path: htmlPath } = await createTempFile(htmlContent, { prefix: 'intermediate', extension: 'html' });
+      const { path: styledHtmlPath } = await createTempFile(styledHtmlContent, { prefix: 'styled', extension: 'html' });
+      const { path: outputPath } = await createTempFile(outputContent, { prefix: 'output', extension: 'pdf' });
+
+      createdPaths.push(inputPath, htmlPath, styledHtmlPath, outputPath);
+
+      // Cleanup all intermediate and final files
+      await cleanupTempFiles([inputPath, htmlPath, styledHtmlPath, outputPath]);
+
+      // Verify all files are deleted
+      await expect(fs.access(inputPath)).rejects.toThrow();
+      await expect(fs.access(htmlPath)).rejects.toThrow();
+      await expect(fs.access(styledHtmlPath)).rejects.toThrow();
+      await expect(fs.access(outputPath)).rejects.toThrow();
+    });
+
     it('should cleanup multiple directories', async () => {
       const { path: path1 } = await createTempDir();
       const { path: path2 } = await createTempDir();
@@ -264,6 +324,23 @@ describe('Temporary File Management', () => {
 
       // Verify directory and all contents are deleted
       await expect(fs.access(dirPath)).rejects.toThrow();
+    });
+
+    it('should log cleanup progress for multiple files', async () => {
+      const content = Buffer.from('test');
+      const { path: path1 } = await createTempFile(content);
+      const { path: path2 } = await createTempFile(content);
+      const { path: path3 } = await createTempFile(content);
+      createdPaths.push(path1, path2, path3);
+
+      // This test verifies the function completes successfully
+      // Logging is verified through console output in actual usage
+      await cleanupTempFiles([path1, path2, path3]);
+
+      // Verify all files are deleted
+      await expect(fs.access(path1)).rejects.toThrow();
+      await expect(fs.access(path2)).rejects.toThrow();
+      await expect(fs.access(path3)).rejects.toThrow();
     });
   });
 });

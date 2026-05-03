@@ -71,14 +71,17 @@ vi.mock('@/src/lib/storage/signedUrls', () => ({
   })),
 }));
 
-// Mock LibreOffice converter - will be configured per test
-vi.mock('@/src/lib/converters/libreoffice', () => ({
+// Mock Word-to-PDF converter - will be configured per test
+vi.mock('@/src/lib/converters/wordToPdf', () => ({
   convertWordToPdf: vi.fn(async (options: any) => {
     // Simulate successful conversion by default
-    const outputPath = `${options.outputDir}/test-output.pdf`;
     return {
       success: true,
-      outputPath,
+      outputPath: options.outputPath,
+      intermediateFiles: {
+        htmlPath: '/tmp/intermediate-html.html',
+        styledHtmlPath: '/tmp/styled-html.html',
+      },
     };
   }),
 }));
@@ -89,21 +92,15 @@ vi.mock('@/src/lib/utils/tempFiles', () => ({
     const cleanupTracker = { type: 'tempFile', called: false };
     cleanupCalls.push(cleanupTracker);
     return {
-      path: `/tmp/input-${Date.now()}.${options.extension}`,
+      path: `/tmp/${options.prefix}-${Date.now()}.${options.extension}`,
       cleanup: vi.fn(async () => {
         cleanupTracker.called = true;
       }),
     };
   }),
-  createTempDir: vi.fn(async () => {
-    const cleanupTracker = { type: 'tempDir', called: false };
-    cleanupCalls.push(cleanupTracker);
-    return {
-      path: `/tmp/conversion-${Date.now()}`,
-      cleanup: vi.fn(async () => {
-        cleanupTracker.called = true;
-      }),
-    };
+  cleanupTempFiles: vi.fn(async (paths: string[]) => {
+    // Mark all cleanup calls as completed
+    cleanupCalls.forEach(c => c.called = true);
   }),
 }));
 
@@ -131,8 +128,8 @@ import { uploadFile } from '@/src/lib/storage/operations';
 import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
-import { convertWordToPdf } from '@/src/lib/converters/libreoffice';
-import { createTempFile, createTempDir } from '@/src/lib/utils/tempFiles';
+import { convertWordToPdf } from '@/src/lib/converters/wordToPdf';
+import { createTempFile, cleanupTempFiles } from '@/src/lib/utils/tempFiles';
 import { promises as fs } from 'fs';
 
 // Get mock instances
@@ -144,7 +141,7 @@ const mockUpdateConversionStatus = vi.mocked(updateConversionStatus);
 const mockGenerateSignedUrl = vi.mocked(generateSignedUrl);
 const mockConvertWordToPdf = vi.mocked(convertWordToPdf);
 const mockCreateTempFile = vi.mocked(createTempFile);
-const mockCreateTempDir = vi.mocked(createTempDir);
+const mockCleanupTempFiles = vi.mocked(cleanupTempFiles);
 const mockReadFile = vi.mocked(fs.readFile);
 
 describe('Integration Tests: Word to PDF Conversion API Route', () => {
@@ -191,6 +188,10 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
     mockConvertWordToPdf.mockResolvedValue({
       success: true,
       outputPath: '/tmp/test-output.pdf',
+      intermediateFiles: {
+        htmlPath: '/tmp/intermediate-html.html',
+        styledHtmlPath: '/tmp/styled-html.html',
+      },
     });
     
     mockReadFile.mockResolvedValue(
@@ -234,8 +235,12 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
       expect(mockCreateConversionRecord).not.toHaveBeenCalled();
       
       // Verify temporary files were cleaned up
-      expect(cleanupCalls.length).toBe(2); // tempFile + tempDir
-      expect(cleanupCalls.every(c => c.called)).toBe(true);
+      expect(mockCleanupTempFiles).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.stringContaining('/tmp/input-'),
+          expect.stringContaining('/tmp/output-'),
+        ])
+      );
     }, 30000);
     
     /**
@@ -312,8 +317,12 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
       expect(mockGenerateSignedUrl).toHaveBeenCalledWith('converted', expect.any(String), 3600);
       
       // Verify temporary files were cleaned up
-      expect(cleanupCalls.length).toBe(2);
-      expect(cleanupCalls.every(c => c.called)).toBe(true);
+      expect(mockCleanupTempFiles).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.stringContaining('/tmp/input-'),
+          expect.stringContaining('/tmp/output-'),
+        ])
+      );
     }, 30000);
   });
   
@@ -452,8 +461,12 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
       });
       
       // Verify temporary files were cleaned up even on error
-      expect(cleanupCalls.length).toBe(2);
-      expect(cleanupCalls.every(c => c.called)).toBe(true);
+      expect(mockCleanupTempFiles).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.stringContaining('/tmp/input-'),
+          expect.stringContaining('/tmp/output-'),
+        ])
+      );
     }, 30000);
     
     /**
@@ -461,10 +474,10 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
      * 
      * Validates: Requirements 3.1-3.2, 12.1-12.5
      */
-    it('should handle LibreOffice not installed error', async () => {
+    it('should handle conversion pipeline error', async () => {
       mockConvertWordToPdf.mockResolvedValue({
         success: false,
-        error: 'LibreOffice not found. Please install LibreOffice.',
+        error: 'Conversion pipeline failed at step 1: DOCX to HTML conversion',
       });
       
       const docxContent = createMinimalDocxFile('Test document');
@@ -484,11 +497,15 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
       const responseData = await response.json();
       
       expect(response.status).toBe(500);
-      expect(responseData.error).toContain('LibreOffice');
+      expect(responseData.error).toContain('Conversion');
       
       // Verify temporary files were cleaned up
-      expect(cleanupCalls.length).toBe(2);
-      expect(cleanupCalls.every(c => c.called)).toBe(true);
+      expect(mockCleanupTempFiles).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.stringContaining('/tmp/input-'),
+          expect.stringContaining('/tmp/output-'),
+        ])
+      );
     }, 30000);
     
     /**
@@ -540,8 +557,12 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
       });
       
       // Verify temporary files were cleaned up
-      expect(cleanupCalls.length).toBe(2);
-      expect(cleanupCalls.every(c => c.called)).toBe(true);
+      expect(mockCleanupTempFiles).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.stringContaining('/tmp/input-'),
+          expect.stringContaining('/tmp/output-'),
+        ])
+      );
     }, 30000);
   });
   
@@ -567,10 +588,13 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
       
       await POST(request);
       
-      // Verify both temp file and temp dir cleanup were called
-      expect(cleanupCalls.length).toBe(2);
-      expect(cleanupCalls.find(c => c.type === 'tempFile')?.called).toBe(true);
-      expect(cleanupCalls.find(c => c.type === 'tempDir')?.called).toBe(true);
+      // Verify cleanupTempFiles was called with input, output, and intermediate files
+      expect(mockCleanupTempFiles).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.stringContaining('/tmp/input-'),
+          expect.stringContaining('/tmp/output-'),
+        ])
+      );
     }, 30000);
     
     /**
@@ -600,8 +624,12 @@ describe('Integration Tests: Word to PDF Conversion API Route', () => {
       await POST(request);
       
       // Verify cleanup was called even on error
-      expect(cleanupCalls.length).toBe(2);
-      expect(cleanupCalls.every(c => c.called)).toBe(true);
+      expect(mockCleanupTempFiles).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.stringContaining('/tmp/input-'),
+          expect.stringContaining('/tmp/output-'),
+        ])
+      );
     }, 30000);
   });
 });

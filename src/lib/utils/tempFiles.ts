@@ -22,20 +22,35 @@ export interface TempFileResult {
 /**
  * Creates a temporary file with the provided content
  * 
+ * Supports various file extensions for multi-step conversion pipelines:
+ * - .docx (Word documents)
+ * - .pdf (PDF documents)
+ * - .html (HTML intermediate files)
+ * - Any other extension needed for conversion
+ * 
  * @param content - Buffer containing the file content
  * @param options - Optional configuration for the temp file
  * @returns Promise resolving to the file path and cleanup function
  * 
  * @example
  * ```typescript
+ * // Create input file
  * const { path, cleanup } = await createTempFile(buffer, { 
  *   prefix: 'input', 
  *   extension: 'docx' 
  * });
+ * 
+ * // Create intermediate HTML file
+ * const { path: htmlPath, cleanup: cleanupHtml } = await createTempFile(htmlBuffer, {
+ *   prefix: 'intermediate',
+ *   extension: 'html'
+ * });
+ * 
  * try {
- *   // Use the file
+ *   // Use the files
  * } finally {
  *   await cleanup();
+ *   await cleanupHtml();
  * }
  * ```
  */
@@ -131,25 +146,45 @@ export async function createTempDir(): Promise<{
 /**
  * Cleans up multiple temporary files and directories
  * 
- * @param paths - Array of file or directory paths to clean up
+ * This function handles cleanup of all temporary files including intermediate files
+ * generated during multi-step conversion pipelines (e.g., HTML, styled HTML).
+ * All cleanup operations are performed in parallel for efficiency.
+ * 
+ * @param paths - Array of file or directory paths to clean up (can include intermediate files)
  * @returns Promise that resolves when all cleanup operations complete
  * 
  * @example
  * ```typescript
- * await cleanupTempFiles([inputPath, outputPath, tempDirPath]);
+ * // Clean up all files from a conversion pipeline
+ * await cleanupTempFiles([
+ *   inputPath,           // Original input file
+ *   htmlPath,            // Intermediate HTML file
+ *   styledHtmlPath,      // Intermediate styled HTML file
+ *   outputPath,          // Final output file
+ *   tempDirPath          // Temporary directory
+ * ]);
  * ```
  */
 export async function cleanupTempFiles(paths: string[]): Promise<void> {
-  const cleanupPromises = paths.map(async (path) => {
+  if (paths.length === 0) {
+    console.log('[INFO] No temporary files to clean up');
+    return;
+  }
+  
+  console.log(`[INFO] Starting cleanup of ${paths.length} temporary file(s)/directory(ies)`);
+  
+  const cleanupPromises = paths.map(async (path, index) => {
     try {
       await fs.rm(path, { recursive: true, force: true });
-      console.log(`[INFO] Cleaned up temporary path: ${path}`);
+      console.log(`[INFO] Cleaned up temporary path [${index + 1}/${paths.length}]: ${path}`);
     } catch (error) {
-      console.error(`[ERROR] Failed to cleanup temporary path: ${path}`, error);
+      console.error(`[ERROR] Failed to cleanup temporary path [${index + 1}/${paths.length}]: ${path}`, error);
       // Don't throw - continue cleaning up other files
     }
   });
   
   // Wait for all cleanup operations to complete
   await Promise.all(cleanupPromises);
+  
+  console.log(`[INFO] Completed cleanup of ${paths.length} temporary file(s)/directory(ies)`);
 }

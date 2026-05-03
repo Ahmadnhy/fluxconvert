@@ -4,7 +4,7 @@ import { uploadFile } from '@/src/lib/storage/operations';
 import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
-import { convertPdfToWord } from '@/src/lib/converters/pdf2docx';
+import { convertPdfToWord } from '@/src/lib/converters/pdfToWord';
 import { createTempFile, cleanupTempFiles } from '@/src/lib/utils/tempFiles';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -149,8 +149,10 @@ export async function POST(request: NextRequest) {
     tempOutputPath = path.join(path.dirname(tempInputFile.path), outputFileName);
     console.log(`[INFO] Temporary output file path: ${tempOutputPath}`);
 
-    // Call pdf2docx converter with input and output paths
-    console.log(`[INFO] Starting pdf2docx conversion: ${tempInputFile.path} -> ${tempOutputPath}`);
+    // Call PDF-to-Word converter with input and output paths (PDF → Extract Text → Auto Detect Structure → Generate DOCX)
+    console.log(`[INFO] Starting PDF-to-Word pipeline conversion: ${tempInputFile.path} -> ${tempOutputPath}`);
+    const pipelineStartTime = Date.now();
+    
     const conversionResult = await convertPdfToWord({
       inputPath: tempInputFile.path,
       outputPath: tempOutputPath,
@@ -158,7 +160,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!conversionResult.success) {
-      console.error('[ERROR] pdf2docx conversion failed:', conversionResult.error);
+      console.error('[ERROR] PDF-to-Word pipeline conversion failed:', conversionResult.error);
       
       // Update conversion status to failed if we have a conversion ID
       if (userId && conversionId) {
@@ -175,7 +177,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[INFO] pdf2docx conversion completed successfully: ${conversionResult.outputPath}`);
+    const pipelineDuration = Date.now() - pipelineStartTime;
+    console.log(`[INFO] PDF-to-Word pipeline conversion completed successfully in ${pipelineDuration}ms: ${conversionResult.outputPath}`);
+    
+    // Log detected structure information
+    if (conversionResult.detectedStructure) {
+      console.log(`[INFO] Detected structure: ${conversionResult.detectedStructure.headings} heading(s), ${conversionResult.detectedStructure.paragraphs} paragraph(s), ${conversionResult.detectedStructure.tables} table(s)`);
+    }
 
     // Read generated DOCX from temporary directory
     let docxBuffer: Buffer;
