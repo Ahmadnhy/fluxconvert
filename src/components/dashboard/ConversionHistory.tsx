@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import ConfirmDialog from '@/src/components/ConfirmDialog';
 
 interface Conversion {
   id: string;
@@ -42,6 +43,11 @@ export default function ConversionHistory() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
+    isOpen: boolean;
+    conversionId: string | null;
+  }>({ isOpen: false, conversionId: null });
   const [pagination, setPagination] = useState<PaginationMetadata>({
     page: 1,
     limit: 50,
@@ -53,9 +59,13 @@ export default function ConversionHistory() {
     fetchConversions();
   }, [filter, statusFilter, pagination.page]);
 
-  const fetchConversions = async () => {
+  // Remove auto-refresh for pending conversions since we don't have pending status anymore
+
+  const fetchConversions = async (silent: boolean = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       
       // Build query parameters
@@ -92,11 +102,21 @@ export default function ConversionHistory() {
       setPagination(data.pagination);
     } catch (err) {
       console.error('Error fetching conversions:', err);
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      if (!silent) {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      }
       setConversions([]);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchConversions();
+    setIsRefreshing(false);
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -133,11 +153,9 @@ export default function ConversionHistory() {
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { bg: string; text: string; label: string }> = {
       completed: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
-      processing: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Processing' },
-      pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
       failed: { bg: 'bg-red-100', text: 'text-red-700', label: 'Failed' },
     };
-    const badge = badges[status] || badges.pending;
+    const badge = badges[status] || badges.failed;
     return (
       <span className={`px-2 py-1 rounded text-xs font-medium ${badge.bg} ${badge.text}`}>
         {badge.label}
@@ -191,13 +209,6 @@ export default function ConversionHistory() {
   };
 
   const handleDelete = async (conversionId: string) => {
-    // Show confirmation dialog
-    const confirmed = window.confirm('Are you sure you want to delete this conversion?');
-    
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setDeletingId(conversionId);
       setDeleteError(null);
@@ -231,6 +242,9 @@ export default function ConversionHistory() {
         totalPages: Math.ceil((prev.total - 1) / prev.limit),
       }));
 
+      // Close dialog
+      setDeleteConfirmDialog({ isOpen: false, conversionId: null });
+
     } catch (err) {
       console.error('Error deleting conversion:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete conversion';
@@ -251,8 +265,40 @@ export default function ConversionHistory() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h2 className="text-2xl font-bold text-[#1a1c1e]">Conversion History</h2>
         
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+              isRefreshing
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+            title="Refresh conversion history"
+          >
+            <svg
+              className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full">
+        {/* Search with icon */}
+        <div className="relative w-full sm:w-auto flex-1 sm:flex-initial sm:min-w-[250px]">
           <input
             type="text"
             placeholder="Search by filename..."
@@ -264,40 +310,58 @@ export default function ConversionHistory() {
                 fetchConversions();
               }
             }}
-            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none placeholder:text-[#6B7280]"
+            className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:border-[#5b8ba8] outline-none placeholder:text-gray-500 cursor-text"
           />
+          <svg 
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        {/* Type filter */}
+        <div className="relative">
           <select
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none text-gray-900 [&>option]:text-gray-900"
-            style={{ color: filter === 'all' ? '#6B7280' : undefined }}
+            className="w-full sm:w-auto pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-[#5b8ba8] outline-none bg-white cursor-pointer hover:border-gray-400 transition-colors appearance-none text-gray-700"
           >
-            <option value="all">All Types</option>
-            <option value="word-to-pdf">Word to PDF</option>
-            <option value="pdf-to-word">PDF to Word</option>
-            <option value="jpg-to-pdf">JPG to PDF</option>
-            <option value="pdf-to-jpg">PDF to JPG</option>
-            <option value="merge-pdf">Merge PDF</option>
-            <option value="split-pdf">Split PDF</option>
+            <option value="all" className="text-gray-500">All Types</option>
+            <option value="word-to-pdf" className="text-gray-900">Word to PDF</option>
+            <option value="pdf-to-word" className="text-gray-900">PDF to Word</option>
+            <option value="jpg-to-pdf" className="text-gray-900">JPG to PDF</option>
+            <option value="pdf-to-jpg" className="text-gray-900">PDF to JPG</option>
+            <option value="merge-pdf" className="text-gray-900">Merge PDF</option>
+            <option value="split-pdf" className="text-gray-900">Split PDF</option>
           </select>
+          <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        {/* Status filter */}
+        <div className="relative">
           <select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none text-gray-900 [&>option]:text-gray-900"
-            style={{ color: statusFilter === 'all' ? '#6B7280' : undefined }}
+            className="w-full sm:w-auto pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-[#5b8ba8] outline-none bg-white cursor-pointer hover:border-gray-400 transition-colors appearance-none text-gray-700"
           >
-            <option value="all">All Status</option>
-            <option value="completed">Completed</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-            <option value="processing">Processing</option>
+            <option value="all" className="text-gray-500">All Status</option>
+            <option value="completed" className="text-gray-900">Completed</option>
+            <option value="failed" className="text-gray-900">Failed</option>
           </select>
+          <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
 
@@ -312,7 +376,7 @@ export default function ConversionHistory() {
               <h3 className="text-sm font-medium text-red-800">Error loading conversions</h3>
               <p className="text-sm text-red-700 mt-1">{error}</p>
               <button
-                onClick={fetchConversions}
+                onClick={() => fetchConversions()}
                 className="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
               >
                 Try again
@@ -377,32 +441,9 @@ export default function ConversionHistory() {
             {conversions.map((conversion) => (
               <div
                 key={conversion.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow relative"
+                className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
               >
-                {/* Delete button in top-right corner */}
-                <button
-                  onClick={() => handleDelete(conversion.id)}
-                  disabled={deletingId === conversion.id}
-                  className={`absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-lg transition-colors ${
-                    deletingId === conversion.id
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'text-red-600 hover:bg-red-50'
-                  }`}
-                  aria-label="Delete conversion"
-                  title="Delete conversion"
-                >
-                  {deletingId === conversion.id ? (
-                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  )}
-                </button>
-
-                <div className="flex flex-col gap-4 pr-10 sm:pr-12">
+                <div className="flex flex-col gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                       <span className="text-sm font-medium text-[#5b8ba8] break-words">
@@ -440,32 +481,65 @@ export default function ConversionHistory() {
                     </p>
                   </div>
 
+                  {/* Action buttons - Delete and Download side by side */}
                   {conversion.status === 'completed' && conversion.outputFile && conversion.outputFile.status === 'active' && (
-                    <button
-                      onClick={() => handleDownload(conversion.id, conversion.outputFile!.fileName)}
-                      disabled={downloadingId === conversion.id}
-                      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium w-full sm:w-auto ${
-                        downloadingId === conversion.id
-                          ? 'bg-gray-400 text-white cursor-not-allowed'
-                          : 'bg-[#5b8ba8] text-white hover:bg-[#4a7a94]'
-                      }`}
-                    >
-                      {downloadingId === conversion.id ? (
-                        <>
-                          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Downloading...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          Download
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      {/* Delete button */}
+                      <button
+                        onClick={() => setDeleteConfirmDialog({ isOpen: true, conversionId: conversion.id })}
+                        disabled={deletingId === conversion.id}
+                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
+                          deletingId === conversion.id
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-white border border-red-300 text-red-600 hover:bg-red-50'
+                        }`}
+                        aria-label="Delete conversion"
+                        title="Delete conversion"
+                      >
+                        {deletingId === conversion.id ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span className="hidden sm:inline">Deleting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span className="hidden sm:inline">Delete</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Download button */}
+                      <button
+                        onClick={() => handleDownload(conversion.id, conversion.outputFile!.fileName)}
+                        disabled={downloadingId === conversion.id}
+                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium flex-1 sm:flex-initial cursor-pointer ${
+                          downloadingId === conversion.id
+                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                            : 'bg-[#5b8ba8] text-white hover:bg-[#4a7a94]'
+                        }`}
+                      >
+                        {downloadingId === conversion.id ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                          </>
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -577,7 +651,7 @@ export default function ConversionHistory() {
                     setPagination(prev => ({ ...prev, page: prev.page + 1 }));
                   }}
                   disabled={pagination.page === pagination.totalPages}
-                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer ${
                     pagination.page === pagination.totalPages
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -590,6 +664,23 @@ export default function ConversionHistory() {
           )}
         </>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirmDialog.isOpen}
+        onClose={() => setDeleteConfirmDialog({ isOpen: false, conversionId: null })}
+        onConfirm={() => {
+          if (deleteConfirmDialog.conversionId) {
+            handleDelete(deleteConfirmDialog.conversionId);
+          }
+        }}
+        title="Delete Conversion"
+        message="Are you sure you want to delete this conversion? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        isLoading={deletingId === deleteConfirmDialog.conversionId}
+      />
     </div>
   );
 }

@@ -31,31 +31,27 @@ export default function Home() {
       {/* TopNavBar */}
       <nav className="bg-white border-b border-gray-200 w-full sticky top-0 z-50">
         <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-8">
-            <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
-              FluxConvert
-            </Link>
-            <div className="hidden md:flex gap-6 text-sm font-medium">
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
-                Word to PDF
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
-                PDF to Word
-              </Link>
+          {/* Logo - Left */}
+          <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
+            FluxConvert
+          </Link>
+          
+          {/* Menu - Center */}
+          <div className="hidden md:flex gap-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
+            {userEmail && (
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/privacy">
-                Privacy
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/terms">
-                Terms
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/help-center">
-                Help Center
-              </Link>
-            </div>
+            )}
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
+              Word to PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
+              PDF to Word
+            </Link>
           </div>
+          
+          {/* Auth buttons - Right */}
           <div className="flex items-center gap-4">
             {isLoading ? (
               <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
@@ -178,21 +174,26 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-16 w-full">
-        <div className="max-w-7xl mx-auto py-8 px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[#1a1c1e] font-semibold text-base">FluxConvert</span>
-            <span className="text-sm text-gray-600 ml-2">© {new Date().getFullYear()} FluxConvert. Precise tools for creative professionals.</span>
-          </div>
-          <div className="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2 text-sm text-gray-600">
-            <Link className="hover:text-gray-900 transition-colors" href="/privacy">
-              Privacy Policy
-            </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="/terms">
-              Terms of Service
-            </Link>
-            <Link className="hover:text-gray-900 transition-colors" href="/help-center">
-              Help Center
-            </Link>
+        <div className="max-w-7xl mx-auto py-8 px-8">
+          {/* Footer Content - Copyright left, Links right */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Copyright - Left */}
+            <div className="text-sm text-gray-500">
+              © {new Date().getFullYear()} FluxConvert. All rights reserved.
+            </div>
+            
+            {/* Links - Right */}
+            <div className="flex flex-wrap justify-center sm:justify-end gap-x-6 text-sm text-gray-600">
+              <Link className="hover:text-gray-900 transition-colors" href="/privacy">
+                Privacy Policy
+              </Link>
+              <Link className="hover:text-gray-900 transition-colors" href="/terms">
+                Terms of Service
+              </Link>
+              <Link className="hover:text-gray-900 transition-colors" href="/help-center">
+                Help Center
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

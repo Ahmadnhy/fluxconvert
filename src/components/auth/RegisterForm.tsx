@@ -130,7 +130,7 @@ export default function RegisterForm() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-500"
               placeholder="John Doe"
             />
           </div>
@@ -145,7 +145,7 @@ export default function RegisterForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-500"
               placeholder="your@email.com"
             />
           </div>
@@ -161,7 +161,7 @@ export default function RegisterForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
+                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-500"
                 placeholder="Enter your password"
               />
               <button
@@ -197,7 +197,7 @@ export default function RegisterForm() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400"
+                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-500"
                 placeholder="Confirm your password"
               />
               <button

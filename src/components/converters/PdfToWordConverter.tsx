@@ -180,31 +180,27 @@ export default function PdfToWordConverter() {
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 w-full sticky top-0 z-50">
         <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-8">
-            <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
-              FluxConvert
-            </Link>
-            <div className="hidden md:flex gap-6 text-sm font-medium">
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
-                Word to PDF
-              </Link>
-              <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/pdf-to-word">
-                PDF to Word
-              </Link>
+          {/* Logo - Left */}
+          <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
+            FluxConvert
+          </Link>
+          
+          {/* Menu - Center */}
+          <div className="hidden md:flex gap-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
+            {userEmail && (
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/privacy">
-                Privacy
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/terms">
-                Terms
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/help-center">
-                Help Center
-              </Link>
-            </div>
+            )}
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
+              Word to PDF
+            </Link>
+            <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/pdf-to-word">
+              PDF to Word
+            </Link>
           </div>
+          
+          {/* Auth buttons - Right */}
           <div className="flex items-center gap-4">
             {isLoading ? (
               <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
