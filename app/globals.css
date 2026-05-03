@@ -19,12 +19,23 @@
   }
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
 
 .tool-card-hover:hover {
   box-shadow: 0px 4px 20px rgba(84, 122, 149, 0.08);
+}
+
+/* Utility class for word wrapping */
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

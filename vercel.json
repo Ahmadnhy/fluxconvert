@@ -4,5 +4,13 @@
       "path": "/api/cron/cleanup",
       "schedule": "0 2 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/convert/word-to-pdf/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/convert/pdf-to-word/route.ts": {
+      "maxDuration": 300
+    }
+  }
 }

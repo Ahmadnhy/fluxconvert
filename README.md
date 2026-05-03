@@ -13,6 +13,9 @@ Project ini dibuat menggunakan **Next.js 16 sebagai frontend dan backend**, sert
 - Node.js 20.x or higher
 - npm or yarn
 - Supabase account (free tier available)
+- **LibreOffice 7.0+** (for Word-to-PDF conversion)
+- **Python 3.8+** (for PDF-to-Word conversion)
+- **pdf2docx Python library** (for PDF-to-Word conversion)
 
 ### Installation
 
@@ -50,12 +53,42 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
 
-5. **Run the development server**
+5. **Install System Dependencies**
+
+**LibreOffice** (required for Word-to-PDF conversion):
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install -y libreoffice
+
+# macOS
+brew install --cask libreoffice
+
+# Windows
+# Download and install from https://www.libreoffice.org/download/download/
+```
+
+**Python 3 and pdf2docx** (required for PDF-to-Word conversion):
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y python3 python3-pip
+pip3 install pdf2docx
+
+# macOS
+brew install python3
+pip3 install pdf2docx
+
+# Windows
+# Download and install Python from https://www.python.org/downloads/
+pip3 install pdf2docx
+```
+
+6. **Run the development server**
 ```bash
 npm run dev
 ```
 
-6. **Open your browser**
+7. **Open your browser**
 
 Navigate to `http://localhost:3000`
 
@@ -268,7 +301,122 @@ Response:
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### ⚠️ Important: Vercel Limitations
+
+**Vercel's serverless environment has significant limitations for this application:**
+
+1. **LibreOffice Installation**: Vercel's serverless functions do not support installing LibreOffice, which is required for Word-to-PDF conversion
+2. **Python Dependencies**: While Python 3 is available, installing system-level dependencies like those required by pdf2docx may be challenging
+3. **Function Timeout**: Even with the 300-second timeout configured in `vercel.json`, complex conversions may exceed limits on the free tier
+
+**Recommendation**: For production deployment with full conversion functionality, we recommend using alternative platforms that support system package installation.
+
+**📖 For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+### Recommended Deployment Platforms
+
+#### Option 1: AWS EC2 (Recommended for Production)
+
+**Pros:**
+- Full control over system packages
+- Can install LibreOffice and Python dependencies
+- Scalable and reliable
+- No function timeout limitations
+
+**Setup:**
+1. Launch an Ubuntu EC2 instance
+2. Install Node.js, LibreOffice, Python 3, and pdf2docx
+3. Clone repository and install dependencies
+4. Configure environment variables
+5. Use PM2 or systemd to run the application
+6. Set up nginx as reverse proxy
+
+```bash
+# Install dependencies on Ubuntu EC2
+sudo apt-get update
+sudo apt-get install -y nodejs npm libreoffice python3 python3-pip
+pip3 install pdf2docx
+npm install
+npm run build
+npm start
+```
+
+#### Option 2: DigitalOcean App Platform or Droplet
+
+**Pros:**
+- Simple deployment process
+- Support for system packages
+- Affordable pricing
+- Good documentation
+
+**Setup:**
+1. Create a new app or droplet
+2. Connect your GitHub repository
+3. Add build and start commands
+4. Configure environment variables
+5. Install system dependencies via Dockerfile or buildpack
+
+#### Option 3: Docker Container (Any Platform)
+
+**Pros:**
+- Consistent environment across platforms
+- Pre-install all dependencies in image
+- Deploy to any container platform (AWS ECS, Google Cloud Run, Azure Container Instances)
+
+**Dockerfile Example:**
+```dockerfile
+FROM node:20
+
+# Install LibreOffice and Python dependencies
+RUN apt-get update && apt-get install -y \
+    libreoffice \
+    python3 \
+    python3-pip \
+    && pip3 install pdf2docx \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+#### Option 4: Railway
+
+**Pros:**
+- Easy deployment from GitHub
+- Supports Dockerfile
+- Generous free tier
+- Automatic HTTPS
+
+**Setup:**
+1. Create a Railway account
+2. Connect your GitHub repository
+3. Add a Dockerfile (see example above)
+4. Configure environment variables
+5. Deploy
+
+### Vercel Deployment (Limited Functionality)
+
+If you still want to deploy to Vercel despite the limitations, the application will work with reduced functionality:
+
+**What Works:**
+- User authentication
+- File upload and storage
+- Conversion history
+- UI components
+
+**What Doesn't Work:**
+- Word-to-PDF conversion (LibreOffice not available)
+- PDF-to-Word conversion (pdf2docx may not work)
+
+**Vercel Deployment Steps:**
+
+**Vercel Deployment Steps:**
 
 1. Push your code to GitHub
 2. Import project in Vercel
@@ -276,6 +424,34 @@ Response:
 4. Deploy
 
 **Note:** The automated file cleanup cron job will only work in production on Vercel. See [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for detailed setup instructions.
+
+⚠️ **Warning**: Conversion endpoints will return errors due to missing LibreOffice and pdf2docx dependencies.
+
+### System Requirements for Full Functionality
+
+### System Requirements for Full Functionality
+
+To run this application with full conversion capabilities, your deployment environment must have:
+
+1. **LibreOffice 7.0 or higher**
+   - Required for Word-to-PDF conversion
+   - Must be accessible via command line
+   - Headless mode support required
+
+2. **Python 3.8 or higher**
+   - Required for PDF-to-Word conversion
+   - Must be in system PATH
+
+3. **pdf2docx Python library**
+   - Install via: `pip3 install pdf2docx`
+   - Requires PyMuPDF and python-docx dependencies
+
+4. **Node.js 20.x or higher**
+   - For running the Next.js application
+
+5. **Sufficient disk space**
+   - Temporary files are created during conversion
+   - Automatic cleanup runs daily at 2 AM
 
 ### Environment Variables for Production
 

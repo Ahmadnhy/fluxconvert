@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PDFDocument, rgb } from 'pdf-lib';
-import mammoth from 'mammoth';
 import { createClient } from '@/src/lib/supabase/server';
 import { uploadFile } from '@/src/lib/storage/operations';
 import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
+import { convertWordToPdf } from '@/src/lib/converters/libreoffice';
+import { createTempFile, createTempDir } from '@/src/lib/utils/tempFiles';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,6 +15,10 @@ export const dynamic = 'force-dynamic';
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export async function POST(request: NextRequest) {
+  let tempInputFile: { path: string; cleanup: () => Promise<void> } | null = null;
+  let tempOutputDir: { path: string; cleanup: () => Promise<void> } | null = null;
+  let conversionId: string | null = null;
+
   try {
     // Get authenticated user (optional - handle both authenticated and unauthenticated users)
     const supabase = await createClient();
@@ -93,7 +99,6 @@ export async function POST(request: NextRequest) {
     console.log(`File uploaded successfully: ${uploadResult.path}, File record ID: ${fileRecordResult.id}`);
 
     // Create conversion record with pending status (only for authenticated users)
-    let conversionId: string | null = null;
     if (userId) {
       const conversionResult = await createConversionRecord({
         user_id: userId,
@@ -113,83 +118,43 @@ export async function POST(request: NextRequest) {
       console.log(`Conversion record created with ID: ${conversionId}`);
     }
 
-    // Extract text and HTML from Word document using mammoth
-    const result = await mammoth.convertToHtml({ buffer });
-    const html = result.value;
+    // Create temporary input file from uploaded buffer
+    tempInputFile = await createTempFile(buffer, {
+      prefix: 'input',
+      extension: 'docx',
+    });
 
-    // Create PDF document
-    const pdfDoc = await PDFDocument.create();
-    
-    // Parse HTML and extract text
-    const textContent = html.replace(/<[^>]*>/g, '\n').trim();
-    const lines = textContent.split('\n').filter(line => line.trim());
-    
-    // Add text to PDF with proper pagination
-    const fontSize = 12;
-    const lineHeight = fontSize * 1.5;
-    const margin = 50;
-    const pageWidth = 595.28; // A4 width
-    const pageHeight = 841.89; // A4 height
-    const maxWidth = pageWidth - (margin * 2);
-    
-    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-    let yPosition = pageHeight - margin;
-    
-    for (const line of lines) {
-      if (!line.trim()) continue;
+    // Create temporary output directory
+    tempOutputDir = await createTempDir();
+
+    // Call LibreOffice converter with input and output paths
+    console.log(`Starting LibreOffice conversion: ${file.name}`);
+    const conversionResult = await convertWordToPdf({
+      inputPath: tempInputFile.path,
+      outputDir: tempOutputDir.path,
+      timeout: 120000, // 120 seconds
+    });
+
+    if (!conversionResult.success) {
+      console.error('LibreOffice conversion failed:', conversionResult.error);
       
-      // Check if we need a new page
-      if (yPosition < margin + lineHeight) {
-        currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-        yPosition = pageHeight - margin;
-      }
-      
-      // Wrap text if too long
-      const words = line.split(' ');
-      let currentLine = '';
-      
-      for (const word of words) {
-        const testLine = currentLine + (currentLine ? ' ' : '') + word;
-        const textWidth = testLine.length * (fontSize * 0.5); // Approximate width
-        
-        if (textWidth > maxWidth && currentLine) {
-          // Draw current line
-          currentPage.drawText(currentLine, {
-            x: margin,
-            y: yPosition,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-          });
-          
-          yPosition -= lineHeight;
-          
-          // Check if we need a new page
-          if (yPosition < margin + lineHeight) {
-            currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-            yPosition = pageHeight - margin;
-          }
-          
-          currentLine = word;
-        } else {
-          currentLine = testLine;
-        }
-      }
-      
-      // Draw remaining text
-      if (currentLine) {
-        currentPage.drawText(currentLine, {
-          x: margin,
-          y: yPosition,
-          size: fontSize,
-          color: rgb(0, 0, 0),
+      // Update conversion status to failed (if authenticated user)
+      if (userId && conversionId) {
+        await updateConversionStatus({
+          conversion_id: conversionId,
+          status: 'failed',
+          error_message: conversionResult.error || 'LibreOffice conversion failed',
         });
-        
-        yPosition -= lineHeight;
       }
+
+      return NextResponse.json(
+        { error: conversionResult.error || 'Conversion failed' },
+        { status: 500 }
+      );
     }
 
-    // Serialize PDF to bytes
-    const pdfBytes = await pdfDoc.save();
+    // Read generated PDF from temporary directory
+    const pdfBytes = await fs.readFile(conversionResult.outputPath!);
     
     // Create response with PDF
     const pdfFileName = file.name.replace('.docx', '.pdf');
@@ -207,7 +172,7 @@ export async function POST(request: NextRequest) {
       const outputUploadResult = await uploadFile(
         'converted',
         outputStoragePath,
-        Buffer.from(pdfBytes),
+        pdfBytes,
         { contentType: 'application/pdf' }
       );
 
@@ -288,13 +253,27 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Conversion error:', error);
     
-    // If we have a conversion ID, update status to failed
-    // Note: conversionId is not accessible here, so we'll handle this in a finally block
+    // Update conversion status to failed if we have a conversion ID
+    if (conversionId) {
+      await updateConversionStatus({
+        conversion_id: conversionId,
+        status: 'failed',
+        error_message: error.message || 'Conversion failed',
+      });
+    }
     
     return NextResponse.json(
       { error: error.message || 'Conversion failed' },
       { status: 500 }
     );
+  } finally {
+    // Clean up all temporary files in finally block (success or error)
+    if (tempInputFile) {
+      await tempInputFile.cleanup();
+    }
+    if (tempOutputDir) {
+      await tempOutputDir.cleanup();
+    }
   }
 }
 

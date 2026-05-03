@@ -1,38 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Document, Paragraph, TextRun, Packer } from 'docx';
 import { createClient } from '@/src/lib/supabase/server';
 import { uploadFile } from '@/src/lib/storage/operations';
 import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
-
-// Polyfill canvas for pdf parsing (not needed for pdf2json but kept for compatibility)
-if (typeof global.DOMMatrix === 'undefined') {
-  try {
-    const canvas = require('canvas');
-    if (canvas.DOMMatrix) global.DOMMatrix = canvas.DOMMatrix;
-    if (canvas.ImageData) global.ImageData = canvas.ImageData;
-    // Path2D is not available in node-canvas, create a stub
-    if (!global.Path2D) {
-      (global as any).Path2D = class Path2D {
-        constructor() {}
-        addPath() {}
-        arc() {}
-        arcTo() {}
-        bezierCurveTo() {}
-        closePath() {}
-        ellipse() {}
-        lineTo() {}
-        moveTo() {}
-        quadraticCurveTo() {}
-        rect() {}
-        roundRect() {}
-      };
-    }
-  } catch (e) {
-    console.warn('Canvas polyfill not available:', e);
-  }
-}
+import { convertPdfToWord } from '@/src/lib/converters/pdf2docx';
+import { createTempFile, cleanupTempFiles } from '@/src/lib/utils/tempFiles';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,6 +15,9 @@ export const dynamic = 'force-dynamic';
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export async function POST(request: NextRequest) {
+  let tempInputFile: { path: string; cleanup: () => Promise<void> } | null = null;
+  let tempOutputPath: string | null = null;
+  
   try {
     // Get authenticated user (optional - handle both authenticated and unauthenticated users)
     const supabase = await createClient();
@@ -140,121 +118,89 @@ export async function POST(request: NextRequest) {
       console.log(`Conversion record created with ID: ${conversionId}`);
     }
 
-    // Parse PDF and extract text content
-    // Use pdf2json which is designed for Node.js (no browser dependencies)
-    const PDFParser = (await import('pdf2json')).default;
-    const pdfParser = new PDFParser();
-    
-    let textResult: { text: string };
+    // Create temporary input file from uploaded buffer
     try {
-      // pdf2json uses event-based API
-      textResult = await new Promise((resolve, reject) => {
-        pdfParser.on('pdfParser_dataError', (errData: any) => {
-          reject(new Error(errData.parserError || 'PDF parsing failed'));
-        });
-        
-        pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
-          // Extract text from all pages
-          const text = pdfData.Pages?.map((page: any) => {
-            return page.Texts?.map((textItem: any) => {
-              return textItem.R?.map((run: any) => {
-                return decodeURIComponent(run.T || '');
-              }).join('');
-            }).join(' ');
-          }).join('\n\n') || '';
-          
-          resolve({ text });
-        });
-        
-        // Parse the buffer
-        pdfParser.parseBuffer(buffer);
+      tempInputFile = await createTempFile(buffer, {
+        prefix: 'input',
+        extension: 'pdf',
       });
+      console.log(`[INFO] Temporary input file created: ${tempInputFile.path}`);
     } catch (error: any) {
-      console.error('PDF parsing failed:', error);
+      console.error('[ERROR] Failed to create temporary input file:', error);
       
       // Update conversion status to failed if we have a conversion ID
       if (userId && conversionId) {
         await updateConversionStatus({
           conversion_id: conversionId,
           status: 'failed',
-          error_message: `Failed to parse PDF: ${error.message || 'Unknown error'}`,
+          error_message: `Failed to create temporary input file: ${error.message}`,
         });
       }
       
       return NextResponse.json(
-        { error: `Failed to parse PDF: ${error.message || 'Invalid or corrupted PDF file'}` },
+        { error: 'Failed to create temporary input file' },
         { status: 500 }
       );
     }
 
-    const textContent = textResult.text;
+    // Create temporary output file path
+    const docxFileName = file.name.replace('.pdf', '.docx');
+    const outputFileName = `output-${timestamp}-${docxFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    tempOutputPath = path.join(path.dirname(tempInputFile.path), outputFileName);
+    console.log(`[INFO] Temporary output file path: ${tempOutputPath}`);
 
-    // Check if PDF contains extractable text
-    if (!textContent || textContent.trim().length === 0) {
-      console.error('PDF contains no extractable text content');
+    // Call pdf2docx converter with input and output paths
+    console.log(`[INFO] Starting pdf2docx conversion: ${tempInputFile.path} -> ${tempOutputPath}`);
+    const conversionResult = await convertPdfToWord({
+      inputPath: tempInputFile.path,
+      outputPath: tempOutputPath,
+      timeout: 120000, // 120 seconds
+    });
+
+    if (!conversionResult.success) {
+      console.error('[ERROR] pdf2docx conversion failed:', conversionResult.error);
       
       // Update conversion status to failed if we have a conversion ID
       if (userId && conversionId) {
         await updateConversionStatus({
           conversion_id: conversionId,
           status: 'failed',
-          error_message: 'PDF contains no extractable text content',
+          error_message: conversionResult.error || 'PDF to Word conversion failed',
         });
       }
       
       return NextResponse.json(
-        { error: 'PDF contains no extractable text content' },
+        { error: conversionResult.error || 'PDF to Word conversion failed' },
         { status: 500 }
       );
     }
 
-    // Generate DOCX document from extracted text
+    console.log(`[INFO] pdf2docx conversion completed successfully: ${conversionResult.outputPath}`);
+
+    // Read generated DOCX from temporary directory
     let docxBuffer: Buffer;
     try {
-      // Split text into paragraphs (double newline = paragraph break)
-      const paragraphTexts = textContent
-        .split('\n\n')
-        .filter((text: string) => text.trim().length > 0);
-
-      // Create paragraphs with proper text runs
-      const paragraphs = paragraphTexts.map((text: string) => 
-        new Paragraph({
-          children: [new TextRun(text.trim())]
-        })
-      );
-
-      // Create document
-      const doc = new Document({
-        sections: [{
-          properties: {},
-          children: paragraphs
-        }]
-      });
-
-      // Generate buffer
-      docxBuffer = await Packer.toBuffer(doc);
+      docxBuffer = await fs.readFile(tempOutputPath);
+      console.log(`[INFO] Read output file: ${tempOutputPath}, size: ${docxBuffer.length} bytes`);
     } catch (error: any) {
-      console.error('DOCX generation failed:', error);
+      console.error('[ERROR] Failed to read output file:', error);
       
       // Update conversion status to failed if we have a conversion ID
       if (userId && conversionId) {
         await updateConversionStatus({
           conversion_id: conversionId,
           status: 'failed',
-          error_message: `Failed to generate Word document: ${error.message || 'Unknown error'}`,
+          error_message: `Failed to read converted file: ${error.message}`,
         });
       }
       
       return NextResponse.json(
-        { error: `Failed to generate Word document: ${error.message || 'Unknown error'}` },
+        { error: 'Failed to read converted file' },
         { status: 500 }
       );
     }
 
-    // Create response with DOCX
-    const docxFileName = file.name.replace('.pdf', '.docx');
-    
-    // Upload converted file to 'converted' bucket (only for authenticated users)
+    // Upload DOCX to Supabase Storage (converted bucket)
     let signedUrl: string | null = null;
     let expiresAt: string | null = null;
     
@@ -352,6 +298,27 @@ export async function POST(request: NextRequest) {
       { error: error.message || 'Conversion failed' },
       { status: 500 }
     );
+  } finally {
+    // Clean up all temporary files in finally block (success or error)
+    const tempPaths: string[] = [];
+    
+    if (tempInputFile) {
+      tempPaths.push(tempInputFile.path);
+    }
+    
+    if (tempOutputPath) {
+      tempPaths.push(tempOutputPath);
+    }
+    
+    if (tempPaths.length > 0) {
+      try {
+        await cleanupTempFiles(tempPaths);
+        console.log('[INFO] Temporary files cleaned up successfully');
+      } catch (cleanupError) {
+        console.error('[ERROR] Failed to cleanup temporary files:', cleanupError);
+        // Don't throw - cleanup is best-effort
+      }
+    }
   }
 }
 

@@ -40,6 +40,8 @@ export default function ConversionHistory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationMetadata>({
     page: 1,
     limit: 50,
@@ -188,6 +190,61 @@ export default function ConversionHistory() {
     }
   };
 
+  const handleDelete = async (conversionId: string) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to delete this conversion?');
+    
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingId(conversionId);
+      setDeleteError(null);
+
+      // Send DELETE request to API
+      const response = await fetch(`/api/conversions/${conversionId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('You must be logged in to delete conversions');
+        } else if (response.status === 403) {
+          throw new Error('You do not have permission to delete this conversion');
+        } else if (response.status === 404) {
+          throw new Error('Conversion not found');
+        } else {
+          throw new Error('Failed to delete conversion');
+        }
+      }
+
+      // Remove entry from local state without page refresh
+      setConversions(prevConversions => 
+        prevConversions.filter(conv => conv.id !== conversionId)
+      );
+
+      // Update pagination total count
+      setPagination(prev => ({
+        ...prev,
+        total: prev.total - 1,
+        totalPages: Math.ceil((prev.total - 1) / prev.limit),
+      }));
+
+    } catch (err) {
+      console.error('Error deleting conversion:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete conversion';
+      setDeleteError(errorMessage);
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setDeleteError(null);
+      }, 5000);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -195,7 +252,7 @@ export default function ConversionHistory() {
         <h2 className="text-2xl font-bold text-[#1a1c1e]">Conversion History</h2>
         
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <input
             type="text"
             placeholder="Search by filename..."
@@ -207,7 +264,7 @@ export default function ConversionHistory() {
                 fetchConversions();
               }
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none placeholder:text-[#6B7280]"
           />
           <select
             value={filter}
@@ -215,7 +272,8 @@ export default function ConversionHistory() {
               setFilter(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none text-gray-900 [&>option]:text-gray-900"
+            style={{ color: filter === 'all' ? '#6B7280' : undefined }}
           >
             <option value="all">All Types</option>
             <option value="word-to-pdf">Word to PDF</option>
@@ -231,7 +289,8 @@ export default function ConversionHistory() {
               setStatusFilter(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none text-gray-900 [&>option]:text-gray-900"
+            style={{ color: statusFilter === 'all' ? '#6B7280' : undefined }}
           >
             <option value="all">All Status</option>
             <option value="completed">Completed</option>
@@ -278,6 +337,21 @@ export default function ConversionHistory() {
         </div>
       )}
 
+      {/* Delete Error Message */}
+      {deleteError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-red-800">Delete failed</h3>
+              <p className="text-sm text-red-700 mt-1">{deleteError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Conversions List */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -303,12 +377,35 @@ export default function ConversionHistory() {
             {conversions.map((conversion) => (
               <div
                 key={conversion.id}
-                className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow relative"
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-sm font-medium text-[#5b8ba8]">
+                {/* Delete button in top-right corner */}
+                <button
+                  onClick={() => handleDelete(conversion.id)}
+                  disabled={deletingId === conversion.id}
+                  className={`absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-lg transition-colors ${
+                    deletingId === conversion.id
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'text-red-600 hover:bg-red-50'
+                  }`}
+                  aria-label="Delete conversion"
+                  title="Delete conversion"
+                >
+                  {deletingId === conversion.id ? (
+                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  )}
+                </button>
+
+                <div className="flex flex-col gap-4 pr-10 sm:pr-12">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                      <span className="text-sm font-medium text-[#5b8ba8] break-words">
                         {getConversionTypeLabel(conversion.conversionType)}
                       </span>
                       {getStatusBadge(conversion.status)}
@@ -316,24 +413,24 @@ export default function ConversionHistory() {
                     
                     <div className="space-y-1">
                       {conversion.inputFile && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-start gap-2 text-sm text-gray-600 min-w-0">
+                          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
-                          <span>{conversion.inputFile.fileName}</span>
-                          <span className="text-gray-400">•</span>
-                          <span>{formatFileSize(conversion.inputFile.fileSize)}</span>
+                          <span className="break-words overflow-wrap-anywhere min-w-0 flex-1">{conversion.inputFile.fileName}</span>
+                          <span className="text-gray-400 flex-shrink-0">•</span>
+                          <span className="flex-shrink-0">{formatFileSize(conversion.inputFile.fileSize)}</span>
                         </div>
                       )}
                       
                       {conversion.outputFile && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-start gap-2 text-sm text-gray-600 min-w-0">
+                          <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span>{conversion.outputFile.fileName}</span>
-                          <span className="text-gray-400">•</span>
-                          <span>{formatFileSize(conversion.outputFile.fileSize)}</span>
+                          <span className="break-words overflow-wrap-anywhere min-w-0 flex-1">{conversion.outputFile.fileName}</span>
+                          <span className="text-gray-400 flex-shrink-0">•</span>
+                          <span className="flex-shrink-0">{formatFileSize(conversion.outputFile.fileSize)}</span>
                         </div>
                       )}
                     </div>
@@ -347,7 +444,7 @@ export default function ConversionHistory() {
                     <button
                       onClick={() => handleDownload(conversion.id, conversion.outputFile!.fileName)}
                       disabled={downloadingId === conversion.id}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium w-full sm:w-auto ${
                         downloadingId === conversion.id
                           ? 'bg-gray-400 text-white cursor-not-allowed'
                           : 'bg-[#5b8ba8] text-white hover:bg-[#4a7a94]'
@@ -379,19 +476,19 @@ export default function ConversionHistory() {
           {pagination.totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200">
               {/* Page info */}
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 text-center sm:text-left">
                 Page {pagination.page} of {pagination.totalPages} ({pagination.total} total conversions)
               </div>
 
               {/* Pagination buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-center">
                 {/* Previous button */}
                 <button
                   onClick={() => {
                     setPagination(prev => ({ ...prev, page: prev.page - 1 }));
                   }}
                   disabled={pagination.page === 1}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                     pagination.page === 1
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -401,7 +498,7 @@ export default function ConversionHistory() {
                 </button>
 
                 {/* Page numbers */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap justify-center">
                   {(() => {
                     const pages = [];
                     const maxVisiblePages = 5;
@@ -419,14 +516,14 @@ export default function ConversionHistory() {
                         <button
                           key={1}
                           onClick={() => setPagination(prev => ({ ...prev, page: 1 }))}
-                          className="w-10 h-10 rounded-lg font-medium text-sm bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-medium text-sm bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                           1
                         </button>
                       );
                       if (startPage > 2) {
                         pages.push(
-                          <span key="ellipsis-start" className="px-2 text-gray-400">
+                          <span key="ellipsis-start" className="px-1 sm:px-2 text-gray-400">
                             ...
                           </span>
                         );
@@ -439,7 +536,7 @@ export default function ConversionHistory() {
                         <button
                           key={i}
                           onClick={() => setPagination(prev => ({ ...prev, page: i }))}
-                          className={`w-10 h-10 rounded-lg font-medium text-sm transition-colors ${
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-medium text-sm transition-colors ${
                             i === pagination.page
                               ? 'bg-[#5b8ba8] text-white'
                               : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -454,7 +551,7 @@ export default function ConversionHistory() {
                     if (endPage < pagination.totalPages) {
                       if (endPage < pagination.totalPages - 1) {
                         pages.push(
-                          <span key="ellipsis-end" className="px-2 text-gray-400">
+                          <span key="ellipsis-end" className="px-1 sm:px-2 text-gray-400">
                             ...
                           </span>
                         );
@@ -463,7 +560,7 @@ export default function ConversionHistory() {
                         <button
                           key={pagination.totalPages}
                           onClick={() => setPagination(prev => ({ ...prev, page: pagination.totalPages }))}
-                          className="w-10 h-10 rounded-lg font-medium text-sm bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-medium text-sm bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                           {pagination.totalPages}
                         </button>
@@ -480,7 +577,7 @@ export default function ConversionHistory() {
                     setPagination(prev => ({ ...prev, page: prev.page + 1 }));
                   }}
                   disabled={pagination.page === pagination.totalPages}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                     pagination.page === pagination.totalPages
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
