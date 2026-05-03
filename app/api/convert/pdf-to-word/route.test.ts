@@ -93,6 +93,7 @@ vi.mock('@/src/lib/storage/signedUrls', () => ({
 }));
 
 // Mock pdf-parse to avoid DOM dependencies in tests
+// pdf-parse v1 uses a simple function API
 vi.mock('pdf-parse', () => ({
   default: vi.fn(async (buffer: Buffer) => {
     // Check if it's a valid PDF by looking for PDF header

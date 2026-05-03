@@ -6,7 +6,7 @@ import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
 
-// Polyfill canvas for pdf-parse
+// Polyfill canvas for pdf parsing (not needed for pdf2json but kept for compatibility)
 if (typeof global.DOMMatrix === 'undefined') {
   try {
     const canvas = require('canvas');
@@ -33,9 +33,6 @@ if (typeof global.DOMMatrix === 'undefined') {
     console.warn('Canvas polyfill not available:', e);
   }
 }
-
-// Use dynamic import for pdf-parse to handle ESM/CJS compatibility
-const pdfParse = require('pdf-parse');
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -144,9 +141,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse PDF and extract text content
-    let textResult;
+    // Use pdf2json which is designed for Node.js (no browser dependencies)
+    const PDFParser = (await import('pdf2json')).default;
+    const pdfParser = new PDFParser();
+    
+    let textResult: { text: string };
     try {
-      textResult = await pdfParse(buffer);
+      // pdf2json uses event-based API
+      textResult = await new Promise((resolve, reject) => {
+        pdfParser.on('pdfParser_dataError', (errData: any) => {
+          reject(new Error(errData.parserError || 'PDF parsing failed'));
+        });
+        
+        pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+          // Extract text from all pages
+          const text = pdfData.Pages?.map((page: any) => {
+            return page.Texts?.map((textItem: any) => {
+              return textItem.R?.map((run: any) => {
+                return decodeURIComponent(run.T || '');
+              }).join('');
+            }).join(' ');
+          }).join('\n\n') || '';
+          
+          resolve({ text });
+        });
+        
+        // Parse the buffer
+        pdfParser.parseBuffer(buffer);
+      });
     } catch (error: any) {
       console.error('PDF parsing failed:', error);
       
