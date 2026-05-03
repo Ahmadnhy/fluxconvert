@@ -28,9 +28,6 @@ export default function LoginForm() {
           // Note: With @supabase/ssr, sessions are stored in cookies which persist by default.
           // The rememberMe flag is captured here for potential future use or analytics.
           // In a pure client-side setup, this would control localStorage vs sessionStorage.
-          data: {
-            rememberMe: rememberMe
-          }
         }
       });
 

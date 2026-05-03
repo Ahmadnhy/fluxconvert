@@ -1,11 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pdfParse from 'pdf-parse';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
 import { createClient } from '@/src/lib/supabase/server';
 import { uploadFile } from '@/src/lib/storage/operations';
 import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
+
+// Polyfill canvas for pdf-parse
+if (typeof global.DOMMatrix === 'undefined') {
+  try {
+    const canvas = require('canvas');
+    if (canvas.DOMMatrix) global.DOMMatrix = canvas.DOMMatrix;
+    if (canvas.ImageData) global.ImageData = canvas.ImageData;
+    // Path2D is not available in node-canvas, create a stub
+    if (!global.Path2D) {
+      (global as any).Path2D = class Path2D {
+        constructor() {}
+        addPath() {}
+        arc() {}
+        arcTo() {}
+        bezierCurveTo() {}
+        closePath() {}
+        ellipse() {}
+        lineTo() {}
+        moveTo() {}
+        quadraticCurveTo() {}
+        rect() {}
+        roundRect() {}
+      };
+    }
+  } catch (e) {
+    console.warn('Canvas polyfill not available:', e);
+  }
+}
+
+// Use dynamic import for pdf-parse to handle ESM/CJS compatibility
+const pdfParse = require('pdf-parse');
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -162,10 +192,10 @@ export async function POST(request: NextRequest) {
       // Split text into paragraphs (double newline = paragraph break)
       const paragraphTexts = textContent
         .split('\n\n')
-        .filter(text => text.trim().length > 0);
+        .filter((text: string) => text.trim().length > 0);
 
       // Create paragraphs with proper text runs
-      const paragraphs = paragraphTexts.map(text => 
+      const paragraphs = paragraphTexts.map((text: string) => 
         new Paragraph({
           children: [new TextRun(text.trim())]
         })

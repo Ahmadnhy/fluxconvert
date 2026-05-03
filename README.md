@@ -262,7 +262,6 @@ Response:
 * ✅ Secure session management
 * ✅ File type and size validation
 * ✅ Sanitized file names
-* 🔄 Rate limiting (Coming soon)
 * 🔄 CSRF protection (Coming soon)
 
 ---
@@ -365,24 +364,6 @@ MIT License
 
 **Depni**  
 App & Web Developer
-
----
-
-## 📞 Support
-
-For issues and questions:
-1. Check [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for setup help
-2. Check [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for cron job setup
-3. Review the code documentation
-4. Open an issue on GitHub
-
----
-
-## 🙏 Acknowledgments
-
-* Next.js team for the amazing framework
-* Supabase team for the backend platform
-* Open source community for the libraries used
 
 ---
 
