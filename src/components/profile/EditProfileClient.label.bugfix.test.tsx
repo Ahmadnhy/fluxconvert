@@ -13,7 +13,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import EditProfileClient from './EditProfileClient';
 import type { User } from '@supabase/supabase-js';
 import * as fc from 'fast-check';

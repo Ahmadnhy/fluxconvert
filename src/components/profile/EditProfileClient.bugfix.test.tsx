@@ -18,7 +18,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import EditProfileClient from './EditProfileClient';
 import type { User } from '@supabase/supabase-js';
 
