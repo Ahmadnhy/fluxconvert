@@ -22,7 +22,7 @@ interface ConversionStatus {
   convertedFileSize?: string;
 }
 
-export default function PdfToWordConverter() {
+export default function PdfToJpgConverter() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [conversionStatus, setConversionStatus] = useState<ConversionStatus>({
     status: 'idle',
@@ -53,7 +53,6 @@ export default function PdfToWordConverter() {
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     setError('');
     
-    // Handle rejected files
     if (rejectedFiles.length > 0) {
       const rejection = rejectedFiles[0];
       if (rejection.errors[0]?.code === 'file-too-large') {
@@ -66,7 +65,6 @@ export default function PdfToWordConverter() {
       return;
     }
 
-    // Process accepted files
     const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
       file,
       id: `${file.name}-${Date.now()}`,
@@ -80,7 +78,7 @@ export default function PdfToWordConverter() {
     accept: {
       'application/pdf': ['.pdf'],
     },
-    maxSize: 50 * 1024 * 1024, // 50 MB
+    maxSize: 50 * 1024 * 1024,
     multiple: false,
   });
 
@@ -102,14 +100,13 @@ export default function PdfToWordConverter() {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Simulate upload progress
       setConversionStatus({
         status: 'uploading',
         progress: 30,
         message: 'Uploading file...',
       });
 
-      const response = await fetch('/api/convert/pdf-to-word', {
+      const response = await fetch('/api/convert/pdf-to-jpg', {
         method: 'POST',
         body: formData,
       });
@@ -122,7 +119,7 @@ export default function PdfToWordConverter() {
       setConversionStatus({
         status: 'converting',
         progress: 60,
-        message: 'Converting to Word...',
+        message: 'Converting to JPG...',
       });
 
       const result = await response.json();
@@ -157,7 +154,6 @@ export default function PdfToWordConverter() {
 
   const handleDownload = () => {
     if (conversionStatus.downloadUrl && conversionStatus.convertedFileName) {
-      // Create a proper download link
       const link = document.createElement('a');
       link.href = conversionStatus.downloadUrl;
       link.download = conversionStatus.convertedFileName;
@@ -180,12 +176,10 @@ export default function PdfToWordConverter() {
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 w-full sticky top-0 z-50">
         <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          {/* Logo - Left */}
           <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
             FluxConvert
           </Link>
           
-          {/* Menu - Center */}
           <div className="hidden md:flex gap-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
             {userEmail && (
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
@@ -195,11 +189,8 @@ export default function PdfToWordConverter() {
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
               Word to PDF
             </Link>
-            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
-              JPG to PDF
-            </Link>
-            <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/pdf-to-word">
-              PDF to Word
+            <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/pdf-to-jpg">
+              PDF to JPG
             </Link>
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/merge-pdf">
               Merge PDF
@@ -209,7 +200,6 @@ export default function PdfToWordConverter() {
             </Link>
           </div>
           
-          {/* Auth buttons - Right */}
           <div className="flex items-center gap-4">
             {isLoading ? (
               <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
@@ -234,11 +224,11 @@ export default function PdfToWordConverter() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#1a1c1e] mb-4 tracking-tight">
-            PDF to Word Converter
+            PDF to JPG Converter
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Convert your PDF files to Word documents (.docx) quickly and easily. 
-            Extract text content and maintain document structure.
+            Convert your PDF files to JPG images. Each page will be converted 
+            to a high-quality JPG image.
           </p>
         </div>
 
@@ -345,8 +335,8 @@ export default function PdfToWordConverter() {
                     <span className="font-medium">Conversion completed successfully!</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-700">
-                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span>{conversionStatus.convertedFileName}</span>
                     <span className="text-gray-500">•</span>
@@ -367,7 +357,7 @@ export default function PdfToWordConverter() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    Convert to Word
+                    Convert to JPG
                   </button>
                   <button
                     onClick={handleRemoveFile}
@@ -387,7 +377,7 @@ export default function PdfToWordConverter() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Download Word
+                    Download JPG
                   </button>
                   <button
                     onClick={handleRemoveFile}
@@ -419,7 +409,7 @@ export default function PdfToWordConverter() {
               </svg>
             </div>
             <h3 className="font-semibold text-[#1a1c1e] mb-2">Fast Conversion</h3>
-            <p className="text-sm text-gray-600">Convert your documents in seconds with our optimized engine</p>
+            <p className="text-sm text-gray-600">Convert all pages to high-quality JPG images in seconds</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-[#5b8ba8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -428,7 +418,7 @@ export default function PdfToWordConverter() {
               </svg>
             </div>
             <h3 className="font-semibold text-[#1a1c1e] mb-2">High Quality</h3>
-            <p className="text-sm text-gray-600">Extract text content and maintain document structure</p>
+            <p className="text-sm text-gray-600">Get crisp, high-resolution JPG images from your PDF</p>
           </div>
         </div>
       </main>

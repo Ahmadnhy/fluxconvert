@@ -46,8 +46,17 @@ export default function Home() {
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
               Word to PDF
             </Link>
-            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
-              PDF to Word
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
+              JPG to PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-jpg">
+              PDF to JPG
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/merge-pdf">
+              Merge PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/split-pdf">
+              Split PDF
             </Link>
           </div>
           
@@ -118,7 +127,7 @@ export default function Home() {
             </Link>
 
             {/* Tool Card 3 - JPG to PDF */}
-            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="#">
+            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="/jpg-to-pdf">
               <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#5b8ba8]/10 transition-colors">
                 <svg className="w-7 h-7 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -130,21 +139,21 @@ export default function Home() {
               </div>
             </Link>
 
-            {/* Tool Card 4 - PNG to PDF */}
-            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="#">
+            {/* Tool Card 4 - PDF to JPG */}
+            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="/pdf-to-jpg">
               <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#5b8ba8]/10 transition-colors">
                 <svg className="w-7 h-7 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-[#1a1c1e] mb-2">PNG to PDF</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Convert PNG graphics into perfectly formatted PDF files.</p>
+                <h3 className="text-lg font-semibold text-[#1a1c1e] mb-2">PDF to JPG</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Convert PDF pages into high-quality JPG images.</p>
               </div>
             </Link>
 
             {/* Tool Card 5 - Merge PDF */}
-            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="#">
+            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="/merge-pdf">
               <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#5b8ba8]/10 transition-colors">
                 <svg className="w-7 h-7 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -157,7 +166,7 @@ export default function Home() {
             </Link>
 
             {/* Tool Card 6 - Split PDF */}
-            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="#">
+            <Link className="bg-white border border-gray-200 rounded-lg p-8 flex flex-col items-center text-center gap-4 hover:shadow-lg transition-all group" href="/split-pdf">
               <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#5b8ba8]/10 transition-colors">
                 <svg className="w-7 h-7 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" transform="rotate(90 12 12)" />

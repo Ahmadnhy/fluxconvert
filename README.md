@@ -20,22 +20,26 @@ Project ini dibuat menggunakan **Next.js 16 sebagai frontend dan backend**, sert
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd fluxconvert
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Set up environment variables**
+
 ```bash
 cp .env.local.example .env.local
 ```
 
 Edit `.env.local` and add your Supabase credentials:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -45,6 +49,7 @@ CRON_SECRET=your_secure_random_secret_here
 ```
 
 Generate a secure `CRON_SECRET`:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -56,6 +61,7 @@ Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
 5. **Install System Dependencies**
 
 **LibreOffice** (required for Word-to-PDF conversion):
+
 ```bash
 # Ubuntu/Debian
 sudo apt-get update
@@ -69,6 +75,7 @@ brew install --cask libreoffice
 ```
 
 **Python 3 and pdf2docx** (required for PDF-to-Word conversion):
+
 ```bash
 # Ubuntu/Debian
 sudo apt-get install -y python3 python3-pip
@@ -84,6 +91,7 @@ pip3 install pdf2docx
 ```
 
 6. **Run the development server**
+
 ```bash
 npm run dev
 ```
@@ -100,50 +108,50 @@ Navigate to `http://localhost:3000`
 
 #### 📂 Core Conversion Features
 
-* ✅ **Word (.docx) → PDF** - Convert Word documents to PDF format
-* 🔄 JPG / PNG → PDF (Coming soon)
-* 🔄 PDF → JPG (Coming soon)
-* 🔄 Merge PDF (Coming soon)
-* 🔄 Split PDF (Coming soon)
+- ✅ **Word (.docx) → PDF** - Convert Word documents to PDF format
+- ✅ **JPG / PNG → PDF** - Convert images to PDF document
+- ✅ **PDF → JPG** - Convert PDF pages to JPG images
+- ✅ **Merge PDF** - Combine multiple PDF files into one
+- ✅ **Split PDF** - Extract specific pages from a PDF
 
 #### 📤 File Upload Features
 
-* ✅ Drag & Drop upload file
-* ✅ File preview before convert
-* ✅ File size validation (50 MB limit)
-* ✅ Supported file validation
-* ✅ Error handling and notifications
+- ✅ Drag & Drop upload file
+- ✅ File preview before convert
+- ✅ File size validation (50 MB limit)
+- ✅ Supported file validation
+- ✅ Error handling and notifications
 
 #### ⚙️ Conversion Features
 
-* ✅ Real-time progress bar
-* ✅ Status messages (Uploading, Converting, Completed)
-* ✅ Download converted files
-* ✅ Error notifications
+- ✅ Real-time progress bar
+- ✅ Status messages (Uploading, Converting, Completed)
+- ✅ Download converted files
+- ✅ Error notifications
 
 #### 👤 User Features
 
-* ✅ **User Registration** - Create account with email verification
-* ✅ **User Login** - Secure authentication with Supabase
-* ✅ **User Logout** - Session management
-* ✅ **Conversion History** - View all past conversions
-* ✅ **Dashboard** - User dashboard with quick actions
+- ✅ **User Registration** - Create account with email verification
+- ✅ **User Login** - Secure authentication with Supabase
+- ✅ **User Logout** - Session management
+- ✅ **Conversion History** - View all past conversions
+- ✅ **Dashboard** - User dashboard with quick actions
 
 #### 🗄️ Database & Storage
 
-* ✅ **Supabase Integration** - PostgreSQL database
-* ✅ **Supabase Storage** - File storage with 3 buckets
-* ✅ **Row Level Security** - Secure data access
-* ✅ **User Profiles** - Extended user data
-* ✅ **Automated File Cleanup** - Daily cleanup of files older than 7 days
+- ✅ **Supabase Integration** - PostgreSQL database
+- ✅ **Supabase Storage** - File storage with 3 buckets
+- ✅ **Row Level Security** - Secure data access
+- ✅ **User Profiles** - Extended user data
+- ✅ **Automated File Cleanup** - Daily cleanup of files older than 7 days
 
 #### 🌙 UI / UX Features
 
-* ✅ Responsive design (Mobile, Tablet, Desktop)
-* ✅ Modern Minimalist Clean UI
-* ✅ Loading animations with Framer Motion
-* ✅ Progress indicators
-* ✅ Hover effects and transitions
+- ✅ Responsive design (Mobile, Tablet, Desktop)
+- ✅ Modern Minimalist Clean UI
+- ✅ Loading animations with Framer Motion
+- ✅ Progress indicators
+- ✅ Hover effects and transitions
 
 ---
 
@@ -151,26 +159,26 @@ Navigate to `http://localhost:3000`
 
 ### 🌐 Frontend
 
-* **Next.js 16** - React framework with App Router
-* **React 19** - UI library
-* **Tailwind CSS** - Utility-first CSS framework
-* **React Dropzone** - Drag & drop file upload
-* **Framer Motion** - Animation library
+- **Next.js 16** - React framework with App Router
+- **React 19** - UI library
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Dropzone** - Drag & drop file upload
+- **Framer Motion** - Animation library
 
 ### ⚙️ Backend
 
-* **Next.js API Routes** - Serverless API endpoints
-* **pdf-lib** - PDF manipulation
-* **sharp** - Image processing
-* **mammoth.js** - Word document processing
+- **Next.js API Routes** - Serverless API endpoints
+- **pdf-lib** - PDF manipulation
+- **sharp** - Image processing
+- **mammoth.js** - Word document processing
 
 ### 🗄️ Database & Storage
 
-* **Supabase** - Backend as a Service
-  * PostgreSQL database
-  * Authentication
-  * Storage
-  * Row Level Security
+- **Supabase** - Backend as a Service
+  - PostgreSQL database
+  - Authentication
+  - Storage
+  - Row Level Security
 
 ---
 
@@ -182,12 +190,20 @@ fluxconvert/
 ├── app/                          # Next.js App Router
 │   ├── api/                      # API Routes
 │   │   └── convert/
-│   │       └── word-to-pdf/      # Word to PDF conversion endpoint
+│   │       ├── word-to-pdf/      # Word to PDF conversion endpoint
+│   │       ├── jpg-to-pdf/       # JPG/PNG to PDF conversion endpoint
+│   │       ├── pdf-to-jpg/       # PDF to JPG conversion endpoint
+│   │       ├── merge-pdf/        # Merge PDF endpoint
+│   │       └── split-pdf/        # Split PDF endpoint
 │   ├── auth/                     # Auth callbacks
 │   ├── dashboard/                # User dashboard
 │   ├── login/                    # Login page
 │   ├── register/                 # Registration page
 │   ├── word-to-pdf/              # Word to PDF converter page
+│   ├── jpg-to-pdf/               # JPG to PDF converter page
+│   ├── pdf-to-jpg/               # PDF to JPG converter page
+│   ├── merge-pdf/                # Merge PDF page
+│   ├── split-pdf/                # Split PDF page
 │   ├── result/                   # Result page
 │   └── page.tsx                  # Home page
 │
@@ -197,13 +213,23 @@ fluxconvert/
 │   │   │   ├── LoginForm.tsx
 │   │   │   └── RegisterForm.tsx
 │   │   ├── converters/           # Converter components
-│   │   │   └── WordToPdfConverter.tsx
+│   │   │   ├── WordToPdfConverter.tsx
+│   │   │   ├── JpgToPdfConverter.tsx
+│   │   │   ├── PdfToJpgConverter.tsx
+│   │   │   ├── MergePdfConverter.tsx
+│   │   │   └── SplitPdfConverter.tsx
 │   │   ├── dashboard/            # Dashboard components
 │   │   │   └── ConversionHistory.tsx
 │   │   ├── home.tsx              # Home page component
 │   │   └── result.tsx            # Result page component
 │   │
 │   └── lib/
+│       ├── converters/           # Conversion logic
+│       │   ├── wordToPdf.ts
+│       │   ├── jpgToPdf.ts
+│       │   ├── pdfToJpg.ts
+│       │   ├── mergePdf.ts
+│       │   └── splitPdf.ts
 │       └── supabase/             # Supabase client utilities
 │           ├── client.ts         # Browser client
 │           ├── server.ts         # Server client
@@ -246,6 +272,7 @@ See [supabase/schema.sql](./supabase/schema.sql) for complete schema.
 ### Conversion Endpoints
 
 #### Word to PDF
+
 ```
 POST /api/convert/word-to-pdf
 Content-Type: multipart/form-data
@@ -259,6 +286,84 @@ Response:
   "fileName": "document.pdf",
   "fileSize": "2.4 MB",
   "downloadUrl": "data:application/pdf;base64,..."
+}
+```
+
+#### JPG/PNG to PDF
+
+```
+POST /api/convert/jpg-to-pdf
+Content-Type: multipart/form-data
+
+Body:
+- files: File[] (required, .jpg/.jpeg/.png, max 50MB each, max 20 files)
+
+Response:
+{
+  "success": true,
+  "fileName": "merged_images_1234567890.pdf",
+  "fileSize": "5.1 MB",
+  "downloadUrl": "data:application/pdf;base64,...",
+  "pageCount": 3
+}
+```
+
+#### PDF to JPG
+
+```
+POST /api/convert/pdf-to-jpg
+Content-Type: multipart/form-data
+
+Body:
+- file: File (required, .pdf, max 50MB)
+
+Response:
+{
+  "success": true,
+  "fileName": "document.jpg" or "document_images.zip",
+  "fileSize": "3.2 MB",
+  "downloadUrl": "data:image/jpeg;base64,..." or "data:application/zip;base64,...",
+  "totalPages": 5
+}
+```
+
+#### Merge PDF
+
+```
+POST /api/convert/merge-pdf
+Content-Type: multipart/form-data
+
+Body:
+- files: File[] (required, .pdf, min 2 files, max 20 files, max 50MB each)
+
+Response:
+{
+  "success": true,
+  "fileName": "merged_1234567890.pdf",
+  "fileSize": "8.7 MB",
+  "downloadUrl": "data:application/pdf;base64,...",
+  "totalPages": 15
+}
+```
+
+#### Split PDF
+
+```
+POST /api/convert/split-pdf
+Content-Type: multipart/form-data
+
+Body:
+- file: File (required, .pdf, max 50MB)
+- pageRanges: string (required, e.g. "1-3, 5, 7-10")
+
+Response:
+{
+  "success": true,
+  "fileName": "document_pages_1-3,5.pdf",
+  "fileSize": "1.5 MB",
+  "downloadUrl": "data:application/pdf;base64,...",
+  "extractedPages": 4,
+  "totalPages": 10
 }
 ```
 
@@ -288,28 +393,18 @@ Response:
 
 ## 🛡️ Security Features
 
-* ✅ Row Level Security (RLS) on all tables
-* ✅ Secure file storage with private buckets
-* ✅ Password strength validation
-* ✅ Email verification
-* ✅ Secure session management
-* ✅ File type and size validation
-* ✅ Sanitized file names
-* 🔄 CSRF protection (Coming soon)
+- ✅ Row Level Security (RLS) on all tables
+- ✅ Secure file storage with private buckets
+- ✅ Password strength validation
+- ✅ Email verification
+- ✅ Secure session management
+- ✅ File type and size validation
+- ✅ Sanitized file names
+- 🔄 CSRF protection (Coming soon)
 
 ---
 
 ## 🚀 Deployment
-
-### ⚠️ Important: Vercel Limitations
-
-**Vercel's serverless environment has significant limitations for this application:**
-
-1. **LibreOffice Installation**: Vercel's serverless functions do not support installing LibreOffice, which is required for Word-to-PDF conversion
-2. **Python Dependencies**: While Python 3 is available, installing system-level dependencies like those required by pdf2docx may be challenging
-3. **Function Timeout**: Even with the 300-second timeout configured in `vercel.json`, complex conversions may exceed limits on the free tier
-
-**Recommendation**: For production deployment with full conversion functionality, we recommend using alternative platforms that support system package installation.
 
 **📖 For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)**
 
@@ -318,12 +413,14 @@ Response:
 #### Option 1: AWS EC2 (Recommended for Production)
 
 **Pros:**
+
 - Full control over system packages
 - Can install LibreOffice and Python dependencies
 - Scalable and reliable
 - No function timeout limitations
 
 **Setup:**
+
 1. Launch an Ubuntu EC2 instance
 2. Install Node.js, LibreOffice, Python 3, and pdf2docx
 3. Clone repository and install dependencies
@@ -344,12 +441,14 @@ npm start
 #### Option 2: DigitalOcean App Platform or Droplet
 
 **Pros:**
+
 - Simple deployment process
 - Support for system packages
 - Affordable pricing
 - Good documentation
 
 **Setup:**
+
 1. Create a new app or droplet
 2. Connect your GitHub repository
 3. Add build and start commands
@@ -359,11 +458,13 @@ npm start
 #### Option 3: Docker Container (Any Platform)
 
 **Pros:**
+
 - Consistent environment across platforms
 - Pre-install all dependencies in image
 - Deploy to any container platform (AWS ECS, Google Cloud Run, Azure Container Instances)
 
 **Dockerfile Example:**
+
 ```dockerfile
 FROM node:20
 
@@ -388,12 +489,14 @@ CMD ["npm", "start"]
 #### Option 4: Railway
 
 **Pros:**
+
 - Easy deployment from GitHub
 - Supports Dockerfile
 - Generous free tier
 - Automatic HTTPS
 
 **Setup:**
+
 1. Create a Railway account
 2. Connect your GitHub repository
 3. Add a Dockerfile (see example above)
@@ -405,12 +508,14 @@ CMD ["npm", "start"]
 If you still want to deploy to Vercel despite the limitations, the application will work with reduced functionality:
 
 **What Works:**
+
 - User authentication
 - File upload and storage
 - Conversion history
 - UI components
 
 **What Doesn't Work:**
+
 - Word-to-PDF conversion (LibreOffice not available)
 - PDF-to-Word conversion (pdf2docx may not work)
 
@@ -426,32 +531,6 @@ If you still want to deploy to Vercel despite the limitations, the application w
 **Note:** The automated file cleanup cron job will only work in production on Vercel. See [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for detailed setup instructions.
 
 ⚠️ **Warning**: Conversion endpoints will return errors due to missing LibreOffice and pdf2docx dependencies.
-
-### System Requirements for Full Functionality
-
-### System Requirements for Full Functionality
-
-To run this application with full conversion capabilities, your deployment environment must have:
-
-1. **LibreOffice 7.0 or higher**
-   - Required for Word-to-PDF conversion
-   - Must be accessible via command line
-   - Headless mode support required
-
-2. **Python 3.8 or higher**
-   - Required for PDF-to-Word conversion
-   - Must be in system PATH
-
-3. **pdf2docx Python library**
-   - Install via: `pip3 install pdf2docx`
-   - Requires PyMuPDF and python-docx dependencies
-
-4. **Node.js 20.x or higher**
-   - For running the Next.js application
-
-5. **Sufficient disk space**
-   - Temporary files are created during conversion
-   - Automatic cleanup runs daily at 2 AM
 
 ### Environment Variables for Production
 
@@ -476,29 +555,6 @@ npm run build
 # Run in production mode
 npm start
 ```
-
----
-
-## 📝 Development Roadmap
-
-### Phase 1: Core Features ✅
-- [x] Word to PDF conversion
-- [x] User authentication
-- [x] Conversion history
-- [x] Supabase integration
-
-### Phase 2: Additional Converters 🔄
-- [ ] PDF to Word
-- [ ] JPG/PNG to PDF
-- [ ] PDF to JPG
-- [ ] Merge PDF
-- [ ] Split PDF
-
-### Phase 3: Optimization ✅
-- [x] Automated file cleanup
-- [ ] Performance optimization
-- [ ] Better error handling
-- [ ] Analytics
 
 ---
 

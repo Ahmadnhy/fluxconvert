@@ -20,10 +20,13 @@ interface ConversionStatus {
   downloadUrl?: string;
   convertedFileName?: string;
   convertedFileSize?: string;
+  extractedPages?: number;
+  totalPages?: number;
 }
 
-export default function PdfToWordConverter() {
+export default function SplitPdfConverter() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [pageRanges, setPageRanges] = useState<string>('');
   const [conversionStatus, setConversionStatus] = useState<ConversionStatus>({
     status: 'idle',
     progress: 0,
@@ -53,7 +56,6 @@ export default function PdfToWordConverter() {
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     setError('');
     
-    // Handle rejected files
     if (rejectedFiles.length > 0) {
       const rejection = rejectedFiles[0];
       if (rejection.errors[0]?.code === 'file-too-large') {
@@ -66,7 +68,6 @@ export default function PdfToWordConverter() {
       return;
     }
 
-    // Process accepted files
     const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
       file,
       id: `${file.name}-${Date.now()}`,
@@ -80,13 +81,18 @@ export default function PdfToWordConverter() {
     accept: {
       'application/pdf': ['.pdf'],
     },
-    maxSize: 50 * 1024 * 1024, // 50 MB
+    maxSize: 50 * 1024 * 1024,
     multiple: false,
   });
 
   const handleConvert = async () => {
     if (uploadedFiles.length === 0) {
       setError('Please upload a file first');
+      return;
+    }
+
+    if (!pageRanges.trim()) {
+      setError('Please specify page ranges (e.g., "1-3, 5, 7-10")');
       return;
     }
 
@@ -101,28 +107,28 @@ export default function PdfToWordConverter() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('pageRanges', pageRanges.trim());
 
-      // Simulate upload progress
       setConversionStatus({
         status: 'uploading',
         progress: 30,
         message: 'Uploading file...',
       });
 
-      const response = await fetch('/api/convert/pdf-to-word', {
+      const response = await fetch('/api/convert/split-pdf', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Conversion failed');
+        throw new Error(errorData.error || 'Split failed');
       }
 
       setConversionStatus({
         status: 'converting',
         progress: 60,
-        message: 'Converting to Word...',
+        message: 'Splitting PDF...',
       });
 
       const result = await response.json();
@@ -130,23 +136,26 @@ export default function PdfToWordConverter() {
       setConversionStatus({
         status: 'completed',
         progress: 100,
-        message: 'Conversion completed!',
+        message: 'Split completed!',
         downloadUrl: result.downloadUrl,
         convertedFileName: result.fileName,
         convertedFileSize: result.fileSize,
+        extractedPages: result.extractedPages,
+        totalPages: result.totalPages,
       });
     } catch (err: any) {
       setConversionStatus({
         status: 'error',
         progress: 0,
-        message: err.message || 'Conversion failed',
+        message: err.message || 'Split failed',
       });
-      setError(err.message || 'An error occurred during conversion');
+      setError(err.message || 'An error occurred during split');
     }
   };
 
   const handleRemoveFile = () => {
     setUploadedFiles([]);
+    setPageRanges('');
     setConversionStatus({
       status: 'idle',
       progress: 0,
@@ -157,7 +166,6 @@ export default function PdfToWordConverter() {
 
   const handleDownload = () => {
     if (conversionStatus.downloadUrl && conversionStatus.convertedFileName) {
-      // Create a proper download link
       const link = document.createElement('a');
       link.href = conversionStatus.downloadUrl;
       link.download = conversionStatus.convertedFileName;
@@ -180,12 +188,10 @@ export default function PdfToWordConverter() {
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 w-full sticky top-0 z-50">
         <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          {/* Logo - Left */}
           <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
             FluxConvert
           </Link>
           
-          {/* Menu - Center */}
           <div className="hidden md:flex gap-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
             {userEmail && (
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
@@ -198,18 +204,14 @@ export default function PdfToWordConverter() {
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
               JPG to PDF
             </Link>
-            <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/pdf-to-word">
-              PDF to Word
-            </Link>
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/merge-pdf">
               Merge PDF
             </Link>
-            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/split-pdf">
+            <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/split-pdf">
               Split PDF
             </Link>
           </div>
           
-          {/* Auth buttons - Right */}
           <div className="flex items-center gap-4">
             {isLoading ? (
               <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
@@ -234,11 +236,11 @@ export default function PdfToWordConverter() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#1a1c1e] mb-4 tracking-tight">
-            PDF to Word Converter
+            Split PDF
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Convert your PDF files to Word documents (.docx) quickly and easily. 
-            Extract text content and maintain document structure.
+            Extract specific pages from your PDF document. 
+            Specify the pages you want and get a new PDF with only those pages.
           </p>
         </div>
 
@@ -317,6 +319,25 @@ export default function PdfToWordConverter() {
                 )}
               </div>
 
+              {/* Page Ranges Input */}
+              {conversionStatus.status === 'idle' && (
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-[#1a1c1e] mb-2">
+                    Page Ranges
+                  </label>
+                  <input
+                    type="text"
+                    value={pageRanges}
+                    onChange={(e) => setPageRanges(e.target.value)}
+                    placeholder="e.g., 1-3, 5, 7-10"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base text-[#1a1c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent transition-all"
+                  />
+                  <p className="mt-2 text-xs text-gray-500">
+                    Enter page numbers or ranges separated by commas. Example: &quot;1-3, 5, 7-10&quot; will extract pages 1, 2, 3, 5, 7, 8, 9, 10.
+                  </p>
+                </div>
+              )}
+
               {/* Progress Bar */}
               {(conversionStatus.status === 'uploading' || conversionStatus.status === 'converting') && (
                 <div className="mt-4">
@@ -342,11 +363,13 @@ export default function PdfToWordConverter() {
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="font-medium">Conversion completed successfully!</span>
+                    <span className="font-medium">
+                      Split completed! Extracted {conversionStatus.extractedPages} of {conversionStatus.totalPages} pages.
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-700">
-                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     <span>{conversionStatus.convertedFileName}</span>
                     <span className="text-gray-500">•</span>
@@ -365,9 +388,9 @@ export default function PdfToWordConverter() {
                     className="flex-1 bg-[#5b8ba8] text-white px-6 py-3 rounded-lg text-base font-medium hover:bg-[#4a7a94] transition-colors flex items-center justify-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" transform="rotate(90 12 12)" />
                     </svg>
-                    Convert to Word
+                    Split PDF
                   </button>
                   <button
                     onClick={handleRemoveFile}
@@ -387,13 +410,13 @@ export default function PdfToWordConverter() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Download Word
+                    Download Split PDF
                   </button>
                   <button
                     onClick={handleRemoveFile}
                     className="px-6 py-3 border border-gray-300 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   >
-                    Convert Another
+                    Split Another
                   </button>
                 </>
               )}
@@ -406,11 +429,11 @@ export default function PdfToWordConverter() {
           <div className="text-center">
             <div className="w-12 h-12 bg-[#5b8ba8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h3 className="font-semibold text-[#1a1c1e] mb-2">Secure & Private</h3>
-            <p className="text-sm text-gray-600">Your files are encrypted and automatically deleted after 24 hours</p>
+            <h3 className="font-semibold text-[#1a1c1e] mb-2">Flexible Ranges</h3>
+            <p className="text-sm text-gray-600">Extract single pages, ranges, or combinations like &quot;1-3, 5, 8-10&quot;</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-[#5b8ba8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -418,17 +441,17 @@ export default function PdfToWordConverter() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3 className="font-semibold text-[#1a1c1e] mb-2">Fast Conversion</h3>
-            <p className="text-sm text-gray-600">Convert your documents in seconds with our optimized engine</p>
+            <h3 className="font-semibold text-[#1a1c1e] mb-2">Fast Processing</h3>
+            <p className="text-sm text-gray-600">Split your PDF in seconds with no quality loss</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-[#5b8ba8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h3 className="font-semibold text-[#1a1c1e] mb-2">High Quality</h3>
-            <p className="text-sm text-gray-600">Extract text content and maintain document structure</p>
+            <h3 className="font-semibold text-[#1a1c1e] mb-2">Secure & Private</h3>
+            <p className="text-sm text-gray-600">Your files are encrypted and automatically deleted after 24 hours</p>
           </div>
         </div>
       </main>
