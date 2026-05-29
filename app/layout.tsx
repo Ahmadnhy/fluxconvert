@@ -38,9 +38,9 @@ export const metadata: Metadata = {
     locale: "id_ID",
   },
   icons: {
-    icon: "/images/icon.png",
-    shortcut: "/images/icon.png",
-    apple: "/images/icon.png",
+    icon: "/images/icon_square.png",
+    shortcut: "/images/icon_square.png",
+    apple: "/images/icon_square.png",
   },
 };
 

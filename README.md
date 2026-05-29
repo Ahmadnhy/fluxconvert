@@ -2,156 +2,82 @@
 
 Website converter file berbasis web yang memungkinkan pengguna untuk mengubah berbagai format file seperti Word ke PDF, JPG ke PDF, PDF ke JPG, serta menggabungkan dan memisahkan file PDF dengan mudah dan cepat.
 
-Project ini dibuat menggunakan **Next.js 16 sebagai frontend dan backend**, serta **Supabase sebagai database dan storage**.
+Live Demo: [fluxyconvert.vercel.app](https://fluxyconvert.vercel.app)
 
 ---
 
-## 🚀 Quick Start
+# 🌟 Fitur Utama (Key Features)
 
-### Prerequisites
-
-- Node.js 20.x or higher
-- npm or yarn
-- Supabase account (free tier available)
-- **LibreOffice 7.0+** (for Word-to-PDF conversion)
-- **Python 3.8+** (for PDF-to-Word conversion)
-- **pdf2docx Python library** (for PDF-to-Word conversion)
-
-### Installation
-
-1. **Clone the repository**
-
-```bash
-git clone <repository-url>
-cd fluxconvert
-```
-
-2. **Install dependencies**
-
-```bash
-npm install
-```
-
-3. **Set up environment variables**
-
-```bash
-cp .env.local.example .env.local
-```
-
-Edit `.env.local` and add your Supabase credentials:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-CRON_SECRET=your_secure_random_secret_here
-```
-
-Generate a secure `CRON_SECRET`:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-4. **Set up Supabase**
-
-Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
-
-5. **Install System Dependencies**
-
-**LibreOffice** (required for Word-to-PDF conversion):
-
-```bash
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install -y libreoffice
-
-# macOS
-brew install --cask libreoffice
-
-# Windows
-# Download and install from https://www.libreoffice.org/download/download/
-```
-
-**Python 3 and pdf2docx** (required for PDF-to-Word conversion):
-
-```bash
-# Ubuntu/Debian
-sudo apt-get install -y python3 python3-pip
-pip3 install pdf2docx
-
-# macOS
-brew install python3
-pip3 install pdf2docx
-
-# Windows
-# Download and install Python from https://www.python.org/downloads/
-pip3 install pdf2docx
-```
-
-6. **Run the development server**
-
-```bash
-npm run dev
-```
-
-7. **Open your browser**
-
-Navigate to `http://localhost:3000`
+- 📂 **Konverter File Komplit**:
+  - **Word ke PDF** (.docx → .pdf)
+  - **PDF ke Word** (.pdf → .docx)
+  - **JPG ke PDF** (.jpg/.jpeg/.png → .pdf) dengan pengaturan margin, ukuran A4/fit, dan rotasi.
+  - **PDF ke JPG** (.pdf → .jpg) per halaman.
+  - **Merge PDF** — Gabungkan beberapa PDF menjadi satu dokumen.
+  - **Split PDF** — Ekstrak halaman atau pisahkan berkas PDF berdasarkan halaman tertentu.
+- 📱 **Desain Mobile-First & Premium**:
+  - Tampilan modern, rapi, dan responsif 100% di semua device handphone/tablet tanpa ada overflow.
+  - Hambuger menu laci samping (`MobileNav`) dengan transisi _spring animation_ yang super mulus.
+  - Desain _glassmorphism_ modern dengan efek `backdrop-blur` pada navigasi bar atas.
+  - Mikro-animasi interaktif seperti tombol melayang (`.btn-lift`) dan bar progres dengan shimmer effect (`.progress-bar-shimmer`) yang sangat ringan (diakselerasi GPU).
+- 🔍 **SEO & Searchability Optimal**:
+  - Meta tags, deskripsi, dan keywords yang teroptimasi di mesin pencari Google (termasuk kata kunci `flux convert` dan `flucvonvert`).
+  - Integrasi kode verifikasi kepemilikan Google (`google-site-verification`).
+  - Peta situs dinamis (`sitemap.xml`) dan panduan bot perayap (`robots.txt`) bawaan Next.js.
+- 🎨 **Branding Kustom Bersih**:
+  - Ikon website kustom (`app/icon.png`) yang terintegrasi secara _native_ pada browser lama, shortcuts seluler, dan Apple devices, dengan pembersihan favicon bawaan lama.
+- 🔐 **Autentikasi & Database Aman**:
+  - Sistem login/register aman dengan Supabase Auth dan PostgreSQL.
+  - Keamanan penyimpanan file (_Row Level Security_) di Supabase Storage.
 
 ---
 
-## 🚀 Features
+## 🚀 Cara Memulai (Get Started)
 
-### ✅ Implemented Features
+### Langkah Instalasi
 
-#### 📂 Core Conversion Features
+1. **Clone repository**
 
-- ✅ **Word (.docx) → PDF** - Convert Word documents to PDF format
-- ✅ **JPG / PNG → PDF** - Convert images to PDF document
-- ✅ **PDF → JPG** - Convert PDF pages to JPG images
-- ✅ **Merge PDF** - Combine multiple PDF files into one
-- ✅ **Split PDF** - Extract specific pages from a PDF
+   ```bash
+   git clone <repository-url>
+   cd fluxconvert
+   ```
 
-#### 📤 File Upload Features
+2. **Install dependensi Node.js**
 
-- ✅ Drag & Drop upload file
-- ✅ File preview before convert
-- ✅ File size validation (50 MB limit)
-- ✅ Supported file validation
-- ✅ Error handling and notifications
+   ```bash
+   npm install
+   ```
 
-#### ⚙️ Conversion Features
+3. **Konfigurasi Environment Variables**
+   Salin berkas template `.env.local.example` menjadi `.env.local`:
 
-- ✅ Real-time progress bar
-- ✅ Status messages (Uploading, Converting, Completed)
-- ✅ Download converted files
-- ✅ Error notifications
+   ```bash
+   cp .env.local.example .env.local
+   ```
 
-#### 👤 User Features
+   Isi credentials Supabase Anda:
 
-- ✅ **User Registration** - Create account with email verification
-- ✅ **User Login** - Secure authentication with Supabase
-- ✅ **User Logout** - Session management
-- ✅ **Conversion History** - View all past conversions
-- ✅ **Dashboard** - User dashboard with quick actions
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   CRON_SECRET=your_secure_random_secret_here
+   ```
 
-#### 🗄️ Database & Storage
+4. **Jalankan Server Development**
 
-- ✅ **Supabase Integration** - PostgreSQL database
-- ✅ **Supabase Storage** - File storage with 3 buckets
-- ✅ **Row Level Security** - Secure data access
-- ✅ **User Profiles** - Extended user data
-- ✅ **Automated File Cleanup** - Daily cleanup of files older than 7 days
+   ```bash
+   npm run dev
+   ```
 
-#### 🌙 UI / UX Features
+   Buka `http://localhost:3000` pada browser Anda.
 
-- ✅ Responsive design (Mobile, Tablet, Desktop)
-- ✅ Modern Minimalist Clean UI
-- ✅ Loading animations with Framer Motion
-- ✅ Progress indicators
-- ✅ Hover effects and transitions
+5. **Build Produksi (Verification)**
+   ```bash
+   npm run build
+   ```
 
 ---
 
@@ -400,161 +326,6 @@ Response:
 - ✅ Secure session management
 - ✅ File type and size validation
 - ✅ Sanitized file names
-- 🔄 CSRF protection (Coming soon)
-
----
-
-## 🚀 Deployment
-
-**📖 For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)**
-
-### Recommended Deployment Platforms
-
-#### Option 1: AWS EC2 (Recommended for Production)
-
-**Pros:**
-
-- Full control over system packages
-- Can install LibreOffice and Python dependencies
-- Scalable and reliable
-- No function timeout limitations
-
-**Setup:**
-
-1. Launch an Ubuntu EC2 instance
-2. Install Node.js, LibreOffice, Python 3, and pdf2docx
-3. Clone repository and install dependencies
-4. Configure environment variables
-5. Use PM2 or systemd to run the application
-6. Set up nginx as reverse proxy
-
-```bash
-# Install dependencies on Ubuntu EC2
-sudo apt-get update
-sudo apt-get install -y nodejs npm libreoffice python3 python3-pip
-pip3 install pdf2docx
-npm install
-npm run build
-npm start
-```
-
-#### Option 2: DigitalOcean App Platform or Droplet
-
-**Pros:**
-
-- Simple deployment process
-- Support for system packages
-- Affordable pricing
-- Good documentation
-
-**Setup:**
-
-1. Create a new app or droplet
-2. Connect your GitHub repository
-3. Add build and start commands
-4. Configure environment variables
-5. Install system dependencies via Dockerfile or buildpack
-
-#### Option 3: Docker Container (Any Platform)
-
-**Pros:**
-
-- Consistent environment across platforms
-- Pre-install all dependencies in image
-- Deploy to any container platform (AWS ECS, Google Cloud Run, Azure Container Instances)
-
-**Dockerfile Example:**
-
-```dockerfile
-FROM node:20
-
-# Install LibreOffice and Python dependencies
-RUN apt-get update && apt-get install -y \
-    libreoffice \
-    python3 \
-    python3-pip \
-    && pip3 install pdf2docx \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-#### Option 4: Railway
-
-**Pros:**
-
-- Easy deployment from GitHub
-- Supports Dockerfile
-- Generous free tier
-- Automatic HTTPS
-
-**Setup:**
-
-1. Create a Railway account
-2. Connect your GitHub repository
-3. Add a Dockerfile (see example above)
-4. Configure environment variables
-5. Deploy
-
-### Vercel Deployment (Limited Functionality)
-
-If you still want to deploy to Vercel despite the limitations, the application will work with reduced functionality:
-
-**What Works:**
-
-- User authentication
-- File upload and storage
-- Conversion history
-- UI components
-
-**What Doesn't Work:**
-
-- Word-to-PDF conversion (LibreOffice not available)
-- PDF-to-Word conversion (pdf2docx may not work)
-
-**Vercel Deployment Steps:**
-
-**Vercel Deployment Steps:**
-
-1. Push your code to GitHub
-2. Import project in Vercel
-3. Add environment variables (including `CRON_SECRET`)
-4. Deploy
-
-**Note:** The automated file cleanup cron job will only work in production on Vercel. See [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for detailed setup instructions.
-
-⚠️ **Warning**: Conversion endpoints will return errors due to missing LibreOffice and pdf2docx dependencies.
-
-### Environment Variables for Production
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_production_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_production_service_key
-NEXT_PUBLIC_APP_URL=https://your-domain.com
-CRON_SECRET=your_secure_random_secret_here
-```
-
-**Important:** Generate a strong `CRON_SECRET` for production. See [VERCEL_CRON_SETUP.md](./VERCEL_CRON_SETUP.md) for details.
-
----
-
-## 🧪 Testing
-
-```bash
-# Run build
-npm run build
-
-# Run in production mode
-npm start
-```
 
 ---
 
@@ -586,5 +357,5 @@ MIT License
 
 ## 👨‍💻 Author
 
-**Depni**  
-App & Web Developer
+**Ahmad Nur Hidayat**  
+App & Web Developer | [ahmadnh.is-a.dev](https://ahmadnh.is-a.dev)
