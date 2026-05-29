@@ -298,7 +298,7 @@ export default function ConversionHistory() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 w-full">
         {/* Search with icon */}
-        <div className="relative w-full sm:w-auto flex-1 sm:flex-initial sm:min-w-[250px]">
+        <div className="relative w-full sm:w-auto flex-1 sm:flex-initial sm:min-w-[250px] group">
           <input
             type="text"
             placeholder="Search by filename..."
@@ -310,27 +310,29 @@ export default function ConversionHistory() {
                 fetchConversions();
               }
             }}
-            className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:border-[#5b8ba8] outline-none placeholder:text-gray-500 cursor-text"
+            className="w-full pl-4 pr-11 py-2.5 bg-white border border-gray-200/80 shadow-sm rounded-xl focus:ring-4 focus:ring-[#5b8ba8]/15 focus:border-[#5b8ba8] outline-none placeholder:text-gray-400 cursor-text hover:border-[#5b8ba8]/40 hover:shadow-md transition-all duration-300 text-sm font-medium text-gray-700"
           />
-          <svg 
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none p-1.5 rounded-lg bg-gray-50 group-hover:bg-[#5b8ba8]/10 group-focus-within:bg-[#5b8ba8]/10 transition-colors">
+            <svg 
+              className="w-4 h-4 text-gray-400 group-hover:text-[#5b8ba8] group-focus-within:text-[#5b8ba8] transition-colors" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
         </div>
 
         {/* Type filter */}
-        <div className="relative">
+        <div className="relative group">
           <select
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="w-full sm:w-auto pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-[#5b8ba8] outline-none bg-white cursor-pointer hover:border-gray-400 transition-colors appearance-none text-gray-700"
+            className="w-full sm:w-auto pl-4 pr-11 py-2.5 bg-white border border-gray-200/80 shadow-sm rounded-xl focus:ring-4 focus:ring-[#5b8ba8]/15 focus:border-[#5b8ba8] outline-none cursor-pointer hover:border-[#5b8ba8]/40 hover:shadow-md transition-all duration-300 appearance-none text-sm font-medium text-gray-700"
           >
             <option value="all" className="text-gray-500">All Types</option>
             <option value="word-to-pdf" className="text-gray-900">Word to PDF</option>
@@ -340,28 +342,32 @@ export default function ConversionHistory() {
             <option value="merge-pdf" className="text-gray-900">Merge PDF</option>
             <option value="split-pdf" className="text-gray-900">Split PDF</option>
           </select>
-          <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none bg-gray-50 group-hover:bg-[#5b8ba8]/10 transition-colors p-1.5 rounded-lg">
+            <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#5b8ba8] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
 
         {/* Status filter */}
-        <div className="relative">
+        <div className="relative group">
           <select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="w-full sm:w-auto pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-[#5b8ba8] outline-none bg-white cursor-pointer hover:border-gray-400 transition-colors appearance-none text-gray-700"
+            className="w-full sm:w-auto pl-4 pr-11 py-2.5 bg-white border border-gray-200/80 shadow-sm rounded-xl focus:ring-4 focus:ring-[#5b8ba8]/15 focus:border-[#5b8ba8] outline-none cursor-pointer hover:border-[#5b8ba8]/40 hover:shadow-md transition-all duration-300 appearance-none text-sm font-medium text-gray-700"
           >
             <option value="all" className="text-gray-500">All Status</option>
             <option value="completed" className="text-gray-900">Completed</option>
             <option value="failed" className="text-gray-900">Failed</option>
           </select>
-          <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none bg-gray-50 group-hover:bg-[#5b8ba8]/10 transition-colors p-1.5 rounded-lg">
+            <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#5b8ba8] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -443,7 +449,7 @@ export default function ConversionHistory() {
                 key={conversion.id}
                 className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
               >
-                <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-start gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                       <span className="text-sm font-medium text-[#5b8ba8] break-words">
@@ -481,39 +487,33 @@ export default function ConversionHistory() {
                     </p>
                   </div>
 
-                  {/* Action buttons - Delete and Download side by side */}
-                  {conversion.status === 'completed' && conversion.outputFile && conversion.outputFile.status === 'active' && (
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      {/* Delete button */}
-                      <button
-                        onClick={() => setDeleteConfirmDialog({ isOpen: true, conversionId: conversion.id })}
-                        disabled={deletingId === conversion.id}
-                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
-                          deletingId === conversion.id
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-white border border-red-300 text-red-600 hover:bg-red-50'
-                        }`}
-                        aria-label="Delete conversion"
-                        title="Delete conversion"
-                      >
-                        {deletingId === conversion.id ? (
-                          <>
-                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            <span className="hidden sm:inline">Deleting...</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            <span className="hidden sm:inline">Delete</span>
-                          </>
-                        )}
-                      </button>
+                  {/* Action buttons */}
+                  <div className="flex flex-col items-end gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-shrink-0">
+                    {/* Delete button (available for all statuses) */}
+                    <button
+                      onClick={() => setDeleteConfirmDialog({ isOpen: true, conversionId: conversion.id })}
+                      disabled={deletingId === conversion.id}
+                      className={`flex items-center justify-center p-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
+                        deletingId === conversion.id
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-white border border-red-300 text-red-600 hover:bg-red-50'
+                      }`}
+                      aria-label="Delete conversion"
+                      title="Delete conversion"
+                    >
+                      {deletingId === conversion.id ? (
+                        <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
 
-                      {/* Download button */}
+                    {/* Download button (only if completed and active) */}
+                    {conversion.status === 'completed' && conversion.outputFile && conversion.outputFile.status === 'active' && (
                       <button
                         onClick={() => handleDownload(conversion.id, conversion.outputFile!.fileName)}
                         disabled={downloadingId === conversion.id}
@@ -522,6 +522,7 @@ export default function ConversionHistory() {
                             ? 'bg-gray-400 text-white cursor-not-allowed'
                             : 'bg-[#5b8ba8] text-white hover:bg-[#4a7a94]'
                         }`}
+                        title="Download converted file"
                       >
                         {downloadingId === conversion.id ? (
                           <>
@@ -539,8 +540,8 @@ export default function ConversionHistory() {
                           </>
                         )}
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

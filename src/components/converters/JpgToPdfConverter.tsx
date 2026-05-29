@@ -20,7 +20,12 @@ interface ConversionStatus {
   downloadUrl?: string;
   convertedFileName?: string;
   convertedFileSize?: string;
+  multipleFiles?: { fileName: string; fileSize: string; downloadUrl: string }[];
 }
+
+type PageOrientation = 'portrait' | 'landscape';
+type PageSizeMode = 'a4' | 'fit';
+type MarginOption = 'none' | 'small' | 'big';
 
 export default function JpgToPdfConverter() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -32,6 +37,12 @@ export default function JpgToPdfConverter() {
   const [error, setError] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Settings state
+  const [orientation, setOrientation] = useState<PageOrientation>('portrait');
+  const [pageSize, setPageSize] = useState<PageSizeMode>('a4');
+  const [margin, setMargin] = useState<MarginOption>('none');
+  const [mergeAll, setMergeAll] = useState(true);
 
   // Check authentication status
   useEffect(() => {
@@ -109,6 +120,12 @@ export default function JpgToPdfConverter() {
         formData.append('files', uf.file);
       });
 
+      // Append settings
+      formData.append('orientation', orientation);
+      formData.append('pageSize', pageSize);
+      formData.append('margin', margin);
+      formData.append('mergeAll', String(mergeAll));
+
       setConversionStatus({
         status: 'uploading',
         progress: 30,
@@ -133,14 +150,25 @@ export default function JpgToPdfConverter() {
 
       const result = await response.json();
 
-      setConversionStatus({
-        status: 'completed',
-        progress: 100,
-        message: 'Conversion completed!',
-        downloadUrl: result.downloadUrl,
-        convertedFileName: result.fileName,
-        convertedFileSize: result.fileSize,
-      });
+      if (result.multiple && result.files) {
+        // Multiple separate PDFs
+        setConversionStatus({
+          status: 'completed',
+          progress: 100,
+          message: 'Conversion completed!',
+          multipleFiles: result.files,
+        });
+      } else {
+        // Single merged PDF
+        setConversionStatus({
+          status: 'completed',
+          progress: 100,
+          message: 'Conversion completed!',
+          downloadUrl: result.downloadUrl,
+          convertedFileName: result.fileName,
+          convertedFileSize: result.fileSize,
+        });
+      }
     } catch (err: any) {
       setConversionStatus({
         status: 'error',
@@ -166,11 +194,13 @@ export default function JpgToPdfConverter() {
     }
   };
 
-  const handleDownload = () => {
-    if (conversionStatus.downloadUrl && conversionStatus.convertedFileName) {
+  const handleDownload = (url?: string, fileName?: string) => {
+    const downloadUrl = url || conversionStatus.downloadUrl;
+    const downloadName = fileName || conversionStatus.convertedFileName;
+    if (downloadUrl && downloadName) {
       const link = document.createElement('a');
-      link.href = conversionStatus.downloadUrl;
-      link.download = conversionStatus.convertedFileName;
+      link.href = downloadUrl;
+      link.download = downloadName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -301,9 +331,10 @@ export default function JpgToPdfConverter() {
           <p className="text-xs text-gray-500 mt-4">Supports JPG, JPEG, PNG files up to 50MB each (max 20 files)</p>
         </div>
 
-        {/* File List */}
+        {/* File List & Settings */}
         {uploadedFiles.length > 0 && (
           <div className="mt-6 space-y-6">
+            {/* Uploaded Images List */}
             <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
               {uploadedFiles.map((uf, index) => (
                 <div key={uf.id} className="flex items-center gap-4 p-4">
@@ -355,6 +386,189 @@ export default function JpgToPdfConverter() {
               {uploadedFiles.length} image{uploadedFiles.length > 1 ? 's' : ''} selected — each image will be a page in the PDF
             </p>
 
+            {/* PDF Settings Panel */}
+            {conversionStatus.status === 'idle' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white border border-gray-200 rounded-lg p-6"
+              >
+                <div className="flex items-center gap-2 mb-6">
+                  <svg className="w-5 h-5 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-[#1a1c1e]">PDF Settings</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Page Orientation */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#1a1c1e] mb-3">
+                      Page Orientation
+                    </label>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setOrientation('portrait')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                          orientation === 'portrait'
+                            ? 'border-[#5b8ba8] bg-[#5b8ba8]/5 text-[#5b8ba8]'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-500'
+                        }`}
+                      >
+                        <div className={`w-8 h-11 border-2 rounded-sm ${
+                          orientation === 'portrait' ? 'border-[#5b8ba8]' : 'border-gray-300'
+                        }`} />
+                        <span className="text-sm font-medium">Portrait</span>
+                      </button>
+                      <button
+                        onClick={() => setOrientation('landscape')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                          orientation === 'landscape'
+                            ? 'border-[#5b8ba8] bg-[#5b8ba8]/5 text-[#5b8ba8]'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-500'
+                        }`}
+                      >
+                        <div className={`w-11 h-8 border-2 rounded-sm ${
+                          orientation === 'landscape' ? 'border-[#5b8ba8]' : 'border-gray-300'
+                        }`} />
+                        <span className="text-sm font-medium">Landscape</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Page Size */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#1a1c1e] mb-3">
+                      Page Size
+                    </label>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setPageSize('a4')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                          pageSize === 'a4'
+                            ? 'border-[#5b8ba8] bg-[#5b8ba8]/5 text-[#5b8ba8]'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-500'
+                        }`}
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-sm font-medium">A4</span>
+                        <span className="text-xs text-gray-400">210 × 297mm</span>
+                      </button>
+                      <button
+                        onClick={() => setPageSize('fit')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                          pageSize === 'fit'
+                            ? 'border-[#5b8ba8] bg-[#5b8ba8]/5 text-[#5b8ba8]'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-500'
+                        }`}
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                        <span className="text-sm font-medium">Fit</span>
+                        <span className="text-xs text-gray-400">Match image</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Margin */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#1a1c1e] mb-3">
+                      Margin
+                    </label>
+                    <div className="flex gap-3">
+                      {([
+                        { value: 'none' as MarginOption, label: 'No Margin', icon: '0' },
+                        { value: 'small' as MarginOption, label: 'Small', icon: 'S' },
+                        { value: 'big' as MarginOption, label: 'Big', icon: 'L' },
+                      ]).map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setMargin(opt.value)}
+                          className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all ${
+                            margin === opt.value
+                              ? 'border-[#5b8ba8] bg-[#5b8ba8]/5 text-[#5b8ba8]'
+                              : 'border-gray-200 hover:border-gray-300 text-gray-500'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 border rounded-sm flex items-center justify-center relative ${
+                            margin === opt.value ? 'border-[#5b8ba8]' : 'border-gray-300'
+                          }`}>
+                            {opt.value === 'none' && (
+                              <div className={`w-full h-full rounded-sm ${margin === opt.value ? 'bg-[#5b8ba8]/20' : 'bg-gray-100'}`} />
+                            )}
+                            {opt.value === 'small' && (
+                              <div className={`w-5 h-5 rounded-sm ${margin === opt.value ? 'bg-[#5b8ba8]/20' : 'bg-gray-100'}`} />
+                            )}
+                            {opt.value === 'big' && (
+                              <div className={`w-3 h-3 rounded-sm ${margin === opt.value ? 'bg-[#5b8ba8]/20' : 'bg-gray-100'}`} />
+                            )}
+                          </div>
+                          <span className="text-xs font-medium">{opt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {pageSize === 'fit' && (
+                      <p className="mt-2 text-xs text-amber-600 flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Margin is only applied when page size is A4
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Merge All Checkbox */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#1a1c1e] mb-3">
+                      Output Mode
+                    </label>
+                    <label
+                      className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        mergeAll
+                          ? 'border-[#5b8ba8] bg-[#5b8ba8]/5'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="relative flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={mergeAll}
+                          onChange={(e) => setMergeAll(e.target.checked)}
+                          className="sr-only"
+                        />
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                          mergeAll
+                            ? 'bg-[#5b8ba8] border-[#5b8ba8]'
+                            : 'border-gray-300 bg-white'
+                        }`}>
+                          {mergeAll && (
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className={`text-sm font-medium ${mergeAll ? 'text-[#5b8ba8]' : 'text-gray-700'}`}>
+                          Merge all images in one PDF file
+                        </span>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {mergeAll
+                            ? 'All images will be combined into a single PDF document'
+                            : 'Each image will be converted to a separate PDF file'}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Progress Bar */}
             {(conversionStatus.status === 'uploading' || conversionStatus.status === 'converting') && (
               <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -373,8 +587,8 @@ export default function JpgToPdfConverter() {
               </div>
             )}
 
-            {/* Success Message */}
-            {conversionStatus.status === 'completed' && (
+            {/* Success Message - Single PDF */}
+            {conversionStatus.status === 'completed' && conversionStatus.downloadUrl && (
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2 text-green-700 mb-2">
@@ -391,6 +605,45 @@ export default function JpgToPdfConverter() {
                     <span className="text-gray-500">•</span>
                     <span className="text-gray-500">{conversionStatus.convertedFileSize}</span>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message - Multiple PDFs */}
+            {conversionStatus.status === 'completed' && conversionStatus.multipleFiles && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">
+                      {conversionStatus.multipleFiles.length} PDF files created successfully!
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {conversionStatus.multipleFiles.map((pf, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3 text-sm">
+                        <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium text-[#1a1c1e]">{pf.fileName}</span>
+                        <span className="text-gray-500">•</span>
+                        <span className="text-gray-500">{pf.fileSize}</span>
+                      </div>
+                      <button
+                        onClick={() => handleDownload(pf.downloadUrl, pf.fileName)}
+                        className="text-[#5b8ba8] hover:text-[#4a7a94] transition-colors p-1.5"
+                        title={`Download ${pf.fileName}`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -417,10 +670,10 @@ export default function JpgToPdfConverter() {
                 </>
               )}
 
-              {conversionStatus.status === 'completed' && (
+              {conversionStatus.status === 'completed' && conversionStatus.downloadUrl && (
                 <>
                   <button
-                    onClick={handleDownload}
+                    onClick={() => handleDownload()}
                     className="flex-1 bg-[#5b8ba8] text-white px-6 py-3 rounded-lg text-base font-medium hover:bg-[#4a7a94] transition-colors flex items-center justify-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -435,6 +688,15 @@ export default function JpgToPdfConverter() {
                     Convert Another
                   </button>
                 </>
+              )}
+
+              {conversionStatus.status === 'completed' && conversionStatus.multipleFiles && (
+                <button
+                  onClick={() => handleRemoveFile()}
+                  className="flex-1 bg-[#5b8ba8] text-white px-6 py-3 rounded-lg text-base font-medium hover:bg-[#4a7a94] transition-colors flex items-center justify-center gap-2"
+                >
+                  Convert Another
+                </button>
               )}
             </div>
           </div>
@@ -454,11 +716,12 @@ export default function JpgToPdfConverter() {
           <div className="text-center">
             <div className="w-12 h-12 bg-[#5b8ba8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-[#5b8ba8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h3 className="font-semibold text-[#1a1c1e] mb-2">Custom Order</h3>
-            <p className="text-sm text-gray-600">Arrange your images in any order before converting</p>
+            <h3 className="font-semibold text-[#1a1c1e] mb-2">Custom Settings</h3>
+            <p className="text-sm text-gray-600">Choose orientation, page size, margin, and output mode</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-[#5b8ba8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -467,7 +730,7 @@ export default function JpgToPdfConverter() {
               </svg>
             </div>
             <h3 className="font-semibold text-[#1a1c1e] mb-2">High Quality</h3>
-            <p className="text-sm text-gray-600">Images are optimized and properly fitted to their original dimensions</p>
+            <p className="text-sm text-gray-600">Images are optimized at 95% quality for accurate, high-fidelity PDFs</p>
           </div>
         </div>
       </main>

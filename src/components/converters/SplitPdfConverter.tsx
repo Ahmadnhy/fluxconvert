@@ -166,12 +166,34 @@ export default function SplitPdfConverter() {
 
   const handleDownload = () => {
     if (conversionStatus.downloadUrl && conversionStatus.convertedFileName) {
-      const link = document.createElement('a');
-      link.href = conversionStatus.downloadUrl;
-      link.download = conversionStatus.convertedFileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const url = conversionStatus.downloadUrl;
+      // Convert base64 data URI to blob for accurate binary download
+      if (url.startsWith('data:')) {
+        const parts = url.split(',');
+        const mimeMatch = parts[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+        const binaryStr = atob(parts[1]);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: mime });
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = conversionStatus.convertedFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = conversionStatus.convertedFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     }
   };
 

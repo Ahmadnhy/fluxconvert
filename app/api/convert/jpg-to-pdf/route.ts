@@ -5,6 +5,7 @@ import { createFileRecord } from '@/src/lib/database/files';
 import { createConversionRecord, updateConversionStatus } from '@/src/lib/database/conversions';
 import { generateSignedUrl } from '@/src/lib/storage/signedUrls';
 import { convertJpgToPdf } from '@/src/lib/converters/jpgToPdf';
+import type { PageOrientation, PageSizeMode, MarginOption } from '@/src/lib/converters/jpgToPdf';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,12 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
+
+    // Extract settings from form data
+    const orientation = (formData.get('orientation') as PageOrientation) || 'portrait';
+    const pageSize = (formData.get('pageSize') as PageSizeMode) || 'a4';
+    const margin = (formData.get('margin') as MarginOption) || 'none';
+    const mergeAll = formData.get('mergeAll') !== 'false'; // default true
 
     if (!files || files.length === 0) {
       return NextResponse.json(
@@ -127,15 +134,18 @@ export async function POST(request: NextRequest) {
       conversionId = conversionResult.id;
     }
 
-    // Convert images to PDF
-    console.log(`[INFO] Starting JPG to PDF conversion: ${files.length} image(s)`);
+    // Convert images to PDF with user settings
+    console.log(`[INFO] Starting JPG to PDF conversion: ${files.length} image(s), orientation=${orientation}, pageSize=${pageSize}, margin=${margin}, mergeAll=${mergeAll}`);
     const conversionResult = await convertJpgToPdf({
       images,
-      pageSize: 'a4',
+      orientation,
+      pageSize,
+      margin,
+      mergeAll,
       timeout: 120000,
     });
 
-    if (!conversionResult.success || !conversionResult.pdfBuffer) {
+    if (!conversionResult.success) {
       if (userId && conversionId) {
         await updateConversionStatus({
           conversion_id: conversionId,
@@ -150,84 +160,119 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pdfBuffer = conversionResult.pdfBuffer;
-    const pdfFileName = files.length === 1
-      ? files[0].name.replace(/\.(jpg|jpeg|png)$/i, '.pdf')
-      : `merged_images_${timestamp}.pdf`;
+    // Handle merged PDF (single file output)
+    if (conversionResult.pdfBuffer) {
+      const pdfBuffer = conversionResult.pdfBuffer;
+      const pdfFileName = files.length === 1
+        ? files[0].name.replace(/\.(jpg|jpeg|png)$/i, '.pdf')
+        : `images_to_pdf_${timestamp}.pdf`;
 
-    // Upload converted file and update records for authenticated users
-    let signedUrl: string | null = null;
-    let expiresAt: string | null = null;
+      // Upload converted file and update records for authenticated users
+      let signedUrl: string | null = null;
+      let expiresAt: string | null = null;
 
-    if (userId && conversionId) {
-      const outputStoragePath = `${userId}/${timestamp}-${pdfFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      if (userId && conversionId) {
+        const outputStoragePath = `${userId}/${timestamp}-${pdfFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 
-      const outputUploadResult = await uploadFile(
-        'converted',
-        outputStoragePath,
-        pdfBuffer,
-        { contentType: 'application/pdf' }
-      );
+        const outputUploadResult = await uploadFile(
+          'converted',
+          outputStoragePath,
+          pdfBuffer,
+          { contentType: 'application/pdf' }
+        );
 
-      if (outputUploadResult.error) {
-        console.error('Failed to upload output file:', outputUploadResult.error);
+        if (outputUploadResult.error) {
+          console.error('Failed to upload output file:', outputUploadResult.error);
+          await updateConversionStatus({
+            conversion_id: conversionId,
+            status: 'failed',
+            error_message: 'Failed to upload converted file to storage',
+          });
+          return NextResponse.json(
+            { error: 'Failed to upload converted file to storage' },
+            { status: 500 }
+          );
+        }
+
+        const outputFileRecordResult = await createFileRecord({
+          user_id: userId,
+          file_name: pdfFileName,
+          file_type: 'application/pdf',
+          file_size: pdfBuffer.length,
+          storage_path: outputUploadResult.path,
+          storage_bucket: 'converted',
+        });
+
+        if (outputFileRecordResult.error) {
+          console.error('Failed to create output file record:', outputFileRecordResult.error);
+          await updateConversionStatus({
+            conversion_id: conversionId,
+            status: 'failed',
+            error_message: 'Failed to create output file record in database',
+          });
+          return NextResponse.json(
+            { error: 'Failed to create output file record in database' },
+            { status: 500 }
+          );
+        }
+
         await updateConversionStatus({
           conversion_id: conversionId,
-          status: 'failed',
-          error_message: 'Failed to upload converted file to storage',
+          status: 'completed',
+          output_file_id: outputFileRecordResult.id,
         });
-        return NextResponse.json(
-          { error: 'Failed to upload converted file to storage' },
-          { status: 500 }
-        );
+
+        const signedUrlResult = await generateSignedUrl('converted', outputUploadResult.path, 3600);
+        if (!signedUrlResult.error) {
+          signedUrl = signedUrlResult.url;
+          expiresAt = new Date(Date.now() + 3600 * 1000).toISOString();
+        }
       }
 
-      const outputFileRecordResult = await createFileRecord({
-        user_id: userId,
-        file_name: pdfFileName,
-        file_type: 'application/pdf',
-        file_size: pdfBuffer.length,
-        storage_path: outputUploadResult.path,
-        storage_bucket: 'converted',
+      // Return binary PDF directly for accurate download
+      const base64Pdf = pdfBuffer.toString('base64');
+      const downloadUrl = signedUrl || `data:application/pdf;base64,${base64Pdf}`;
+
+      return NextResponse.json({
+        success: true,
+        fileName: pdfFileName,
+        fileSize: formatFileSize(pdfBuffer.length),
+        downloadUrl,
+        pageCount: conversionResult.pageCount,
+        ...(expiresAt && { expiresAt }),
       });
-
-      if (outputFileRecordResult.error) {
-        console.error('Failed to create output file record:', outputFileRecordResult.error);
-        await updateConversionStatus({
-          conversion_id: conversionId,
-          status: 'failed',
-          error_message: 'Failed to create output file record in database',
-        });
-        return NextResponse.json(
-          { error: 'Failed to create output file record in database' },
-          { status: 500 }
-        );
-      }
-
-      await updateConversionStatus({
-        conversion_id: conversionId,
-        status: 'completed',
-        output_file_id: outputFileRecordResult.id,
-      });
-
-      const signedUrlResult = await generateSignedUrl('converted', outputUploadResult.path, 3600);
-      if (!signedUrlResult.error) {
-        signedUrl = signedUrlResult.url;
-        expiresAt = new Date(Date.now() + 3600 * 1000).toISOString();
-      }
     }
 
-    const base64Pdf = pdfBuffer.toString('base64');
-    const downloadUrl = signedUrl || `data:application/pdf;base64,${base64Pdf}`;
+    // Handle separate PDFs (multiple file output)
+    if (conversionResult.pdfBuffers && conversionResult.pdfBuffers.length > 0) {
+      // For separate PDFs, we merge them into a zip-like response
+      // or just return the first one with info about all
+      // For simplicity, return individual download URLs
+      const pdfFiles = conversionResult.pdfBuffers.map((pf) => ({
+        fileName: pf.fileName,
+        fileSize: formatFileSize(pf.buffer.length),
+        downloadUrl: `data:application/pdf;base64,${pf.buffer.toString('base64')}`,
+      }));
 
-    return NextResponse.json({
-      success: true,
-      fileName: pdfFileName,
-      fileSize: formatFileSize(pdfBuffer.length),
-      downloadUrl,
-      pageCount: conversionResult.pageCount,
-      ...(expiresAt && { expiresAt }),
-    });
+      if (userId && conversionId) {
+        await updateConversionStatus({
+          conversion_id: conversionId,
+          status: 'completed',
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        multiple: true,
+        files: pdfFiles,
+        pageCount: conversionResult.pageCount,
+      });
+    }
+
+    return NextResponse.json(
+      { error: 'No output generated' },
+      { status: 500 }
+    );
 
   } catch (error: any) {
     console.error('[ERROR] JPG to PDF conversion error:', error);
