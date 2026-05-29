@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #5b8ba8;
+  --primary-dark: #4a7a94;
+  --primary-light: #e8f4fc;
 }
 
 @theme inline {
@@ -19,14 +22,20 @@
   }
 }
 
+/* ═══════════════════════════════════════════
+   BASE & PERFORMANCE
+   ═══════════════════════════════════════════ */
+
 html {
   overflow-x: hidden;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 html::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
 body {
@@ -34,25 +43,70 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: hidden;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
-.tool-card-hover:hover {
-  box-shadow: 0px 4px 20px rgba(84, 122, 149, 0.08);
+/* Prevent horizontal overflow on mobile */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-/* Utility class for word wrapping */
-.overflow-wrap-anywhere {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+/* Touch optimization - remove 300ms tap delay */
+a,
+button,
+[role="button"],
+input,
+select,
+textarea {
+  touch-action: manipulation;
 }
 
-/* Modal animation */
+/* ═══════════════════════════════════════════
+   GLASSMORPHISM NAVBAR
+   ═══════════════════════════════════════════ */
+
+.nav-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ═══════════════════════════════════════════
+   PREMIUM KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -64,8 +118,252 @@ body::-webkit-scrollbar {
   }
 }
 
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%) translateZ(0);
+  }
+  to {
+    transform: translateX(0) translateZ(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0) translateZ(0);
+  }
+  to {
+    transform: translateX(100%) translateZ(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes progress-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATION UTILITY CLASSES
+   ═══════════════════════════════════════════ */
+
 .animate-fadeIn {
   animation: fadeIn 0.2s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(91, 139, 168, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Stagger delay utilities */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR SHIMMER
+   ═══════════════════════════════════════════ */
+
+.progress-bar-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: progress-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════
+   INTERACTIVE HOVER EFFECTS
+   ═══════════════════════════════════════════ */
+
+.tool-card-hover {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tool-card-hover:hover {
+  transform: translateY(-4px) translateZ(0);
+  box-shadow: 0 12px 40px rgba(91, 139, 168, 0.12),
+              0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.tool-card-hover:active {
+  transform: translateY(-1px) translateZ(0);
+}
+
+.btn-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-lift:hover {
+  transform: translateY(-2px) translateZ(0);
+  box-shadow: 0 6px 20px rgba(91, 139, 168, 0.25);
+}
+
+.btn-lift:active {
+  transform: translateY(0) translateZ(0);
+  box-shadow: 0 2px 8px rgba(91, 139, 168, 0.15);
+}
+
+/* Icon hover float */
+.icon-hover-float {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.icon-hover-float:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* ═══════════════════════════════════════════
+   GRADIENT TEXT
+   ═══════════════════════════════════════════ */
+
+.gradient-text {
+  background: linear-gradient(135deg, #3b617b 0%, #5b8ba8 50%, #7ab0d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══════════════════════════════════════════
+   UPLOAD DROPZONE
+   ═══════════════════════════════════════════ */
+
+.dropzone-active {
+  border-color: var(--primary);
+  background: rgba(91, 139, 168, 0.05);
+  box-shadow: 0 0 0 4px rgba(91, 139, 168, 0.1);
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE MENU OVERLAY
+   ═══════════════════════════════════════════ */
+
+.mobile-menu-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.mobile-menu-drawer {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform;
+}
+
+.mobile-menu-drawer-exit {
+  animation: slideOutRight 0.25s cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+
+/* ═══════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════ */
+
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Cursor pointer for all clickable elements */
@@ -81,4 +379,38 @@ input[type="radio"],
 button:disabled,
 [disabled] {
   cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════
+   REDUCED MOTION SUPPORT
+   ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-in-up,
+  .animate-fade-in-down,
+  .animate-scale-in,
+  .animate-float,
+  .animate-shimmer,
+  .animate-gradient {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .tool-card-hover:hover,
+  .btn-lift:hover {
+    transform: none;
+  }
 }
