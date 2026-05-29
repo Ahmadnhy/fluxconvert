@@ -240,7 +240,7 @@ export default function HelpCenter() {
               Help Center
             </Link>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600" suppressHydrationWarning>
             © {new Date().getFullYear()} FluxConvert. All rights reserved.
           </div>
         </div>

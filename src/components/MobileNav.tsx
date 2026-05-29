@@ -11,13 +11,69 @@ interface MobileNavProps {
 }
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/word-to-pdf', label: 'Word to PDF' },
-  { href: '/jpg-to-pdf', label: 'JPG to PDF' },
-  { href: '/pdf-to-word', label: 'PDF to Word' },
-  { href: '/pdf-to-jpg', label: 'PDF to JPG' },
-  { href: '/merge-pdf', label: 'Merge PDF' },
-  { href: '/split-pdf', label: 'Split PDF' },
+  { 
+    href: '/', 
+    label: 'Home',
+    icon: (
+      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    )
+  },
+  { 
+    href: '/word-to-pdf', 
+    label: 'Word to PDF',
+    icon: (
+      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    )
+  },
+  { 
+    href: '/jpg-to-pdf', 
+    label: 'JPG to PDF',
+    icon: (
+      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    )
+  },
+  { 
+    href: '/pdf-to-word', 
+    label: 'PDF to Word',
+    icon: (
+      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    )
+  },
+  { 
+    href: '/pdf-to-jpg', 
+    label: 'PDF to JPG',
+    icon: (
+      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+      </svg>
+    )
+  },
+  { 
+    href: '/merge-pdf', 
+    label: 'Merge PDF',
+    icon: (
+      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    )
+  },
+  { 
+    href: '/split-pdf', 
+    label: 'Split PDF',
+    icon: (
+      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7h7m-7-7h7M6 10a2 2 0 11-4 0 2 2 0 014 0zm0 8a2 2 0 11-4 0 2 2 0 014 0zm0-8a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    )
+  },
 ];
 
 export default function MobileNav({ userEmail, isLoading }: MobileNavProps) {
@@ -58,7 +114,9 @@ export default function MobileNav({ userEmail, isLoading }: MobileNavProps) {
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors z-[60]"
+        className={`relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-all duration-300 ${
+          isOpen ? 'z-30 opacity-0 pointer-events-none' : 'z-[60] opacity-100'
+        }`}
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
       >
@@ -91,7 +149,7 @@ export default function MobileNav({ userEmail, isLoading }: MobileNavProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 mobile-menu-overlay z-50"
+              className="fixed inset-0 mobile-menu-overlay z-40"
               onClick={() => setIsOpen(false)}
             />
 
@@ -119,6 +177,21 @@ export default function MobileNav({ userEmail, isLoading }: MobileNavProps) {
 
               {/* Navigation Links */}
               <nav className="flex-1 overflow-y-auto py-3 px-3">
+                {/* Home Link */}
+                <Link
+                  href="/"
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all mb-1 ${
+                    pathname === '/'
+                      ? 'bg-[#5b8ba8]/10 text-[#5b8ba8]'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  Home
+                </Link>
+
                 {userEmail && (
                   <Link
                     href="/dashboard"
@@ -157,9 +230,7 @@ export default function MobileNav({ userEmail, isLoading }: MobileNavProps) {
                             : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       >
-                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                        {link.icon}
                         {link.label}
                       </Link>
                     </motion.div>

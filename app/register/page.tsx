@@ -11,9 +11,29 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
       {/* Header */}
       <nav className="bg-white border-b border-gray-200 w-full">
-        <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
+        <div className="flex justify-between items-center w-full px-4 sm:px-8 py-4 max-w-7xl mx-auto relative">
+          {/* Back Button - Left */}
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="hidden sm:inline">Kembali</span>
+          </Link>
+          
+          {/* Brand - Center */}
+          <Link className="text-[#1a1c1e] font-semibold text-lg hover:opacity-80 transition-opacity absolute left-1/2 transform -translate-x-1/2" href="/">
             FluxConvert
+          </Link>
+          
+          {/* Switch Button - Right */}
+          <Link 
+            href="/login" 
+            className="bg-[#5b8ba8]/10 text-[#5b8ba8] hover:bg-[#5b8ba8]/20 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors btn-lift"
+          >
+            Masuk Sesi
           </Link>
         </div>
       </nav>
@@ -40,7 +60,7 @@ export default function RegisterPage() {
               Help Center
             </Link>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600" suppressHydrationWarning>
             © {new Date().getFullYear()} FluxConvert. All rights reserved.
           </div>
         </div>

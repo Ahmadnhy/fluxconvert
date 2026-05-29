@@ -108,9 +108,9 @@ export default function Result() {
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-16 w-full">
         <div className="max-w-7xl mx-auto py-8 px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
             <span className="text-[#1a1c1e] font-semibold text-base">FluxConvert</span>
-            <span className="text-sm text-gray-600 ml-2">© {new Date().getFullYear()} FluxConvert. Precise tools for creative professionals.</span>
+            <span className="text-sm text-gray-600 sm:ml-2" suppressHydrationWarning>© {new Date().getFullYear()} FluxConvert. Precise tools for creative professionals.</span>
           </div>
           <div className="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2 text-sm text-gray-600">
             <Link className="hover:text-gray-900 transition-colors" href="/privacy">

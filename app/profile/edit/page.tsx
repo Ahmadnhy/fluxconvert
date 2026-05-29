@@ -59,7 +59,7 @@ export default async function EditProfilePage() {
       <footer className="bg-white border-t border-gray-200 mt-16 w-full">
         <div className="max-w-7xl mx-auto py-8 px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500" suppressHydrationWarning>
               © {new Date().getFullYear()} FluxConvert. All rights reserved.
             </div>
             <div className="flex flex-wrap justify-center sm:justify-end gap-x-6 text-sm text-gray-600">

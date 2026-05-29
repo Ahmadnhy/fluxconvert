@@ -70,7 +70,7 @@ export default async function DashboardPage() {
           {/* Footer Content - Copyright left, Links right */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Copyright - Left */}
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500" suppressHydrationWarning>
               © {new Date().getFullYear()} FluxConvert. All rights reserved.
             </div>
             
