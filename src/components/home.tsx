@@ -90,7 +90,7 @@ export default function Home() {
           </Link>
           
           {/* Menu - Center (Desktop) */}
-          <div className="hidden md:flex gap-6 lg:gap-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
+          <div className="hidden md:flex gap-4 lg:gap-6 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
             {userEmail && (
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
@@ -98,6 +98,9 @@ export default function Home() {
             )}
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
               Word to PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
+              PDF to Word
             </Link>
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
               JPG to PDF
@@ -199,22 +202,26 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-10 sm:mt-12 lg:mt-16 w-full">
-        <div className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-gray-500">
-              © {new Date().getFullYear()} FluxConvert. All rights reserved.
-            </div>
-            <div className="flex flex-wrap justify-center sm:justify-end gap-x-5 sm:gap-x-6 gap-y-2 text-sm text-gray-600">
-              <Link className="hover:text-gray-900 transition-colors" href="/privacy">
-                Privacy Policy
-              </Link>
-              <Link className="hover:text-gray-900 transition-colors" href="/terms">
-                Terms of Service
-              </Link>
-              <Link className="hover:text-gray-900 transition-colors" href="/help-center">
-                Help Center
-              </Link>
-            </div>
+        <div className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-base font-semibold text-[#1a1c1e]">
+            <span className="gradient-text">FluxConvert</span>
+          </div>
+          <div className="flex flex-wrap justify-center gap-x-5 sm:gap-x-6 gap-y-2 text-sm text-gray-600">
+            <Link className="hover:text-gray-900 transition-colors" href="/">
+              Home
+            </Link>
+            <Link className="hover:text-gray-900 transition-colors" href="/privacy">
+              Privacy Policy
+            </Link>
+            <Link className="hover:text-gray-900 transition-colors" href="/terms">
+              Terms of Service
+            </Link>
+            <Link className="hover:text-gray-900 transition-colors" href="/help-center">
+              Help Center
+            </Link>
+          </div>
+          <div className="text-sm text-gray-600">
+            © {new Date().getFullYear()} FluxConvert. All rights reserved.
           </div>
         </div>
       </footer>

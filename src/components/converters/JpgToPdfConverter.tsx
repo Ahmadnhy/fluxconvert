@@ -233,7 +233,7 @@ export default function JpgToPdfConverter() {
             <span className="gradient-text">FluxConvert</span>
           </Link>
           
-          <div className="hidden md:flex gap-6 lg:gap-8 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
+          <div className="hidden md:flex gap-4 lg:gap-6 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
             {userEmail && (
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
@@ -242,11 +242,14 @@ export default function JpgToPdfConverter() {
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
               Word to PDF
             </Link>
-            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-jpg">
-              PDF to JPG
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
+              PDF to Word
             </Link>
             <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
               JPG to PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-jpg">
+              PDF to JPG
             </Link>
             <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/merge-pdf">
               Merge PDF
