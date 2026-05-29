@@ -32,7 +32,7 @@ Live Demo: [fluxyconvert.vercel.app](https://fluxyconvert.vercel.app)
 
 ---
 
-## 🚀 Cara Memulai (Get Started)
+## 🚀 Get Started
 
 ### Langkah Instalasi
 
@@ -85,26 +85,27 @@ Live Demo: [fluxyconvert.vercel.app](https://fluxyconvert.vercel.app)
 
 ### 🌐 Frontend
 
-- **Next.js 16** - React framework with App Router
-- **React 19** - UI library
-- **Tailwind CSS** - Utility-first CSS framework
-- **React Dropzone** - Drag & drop file upload
-- **Framer Motion** - Animation library
+- **Next.js 16.2.4 (App Router)** - React framework
+- **React 19.2.4** - UI library
+- **Tailwind CSS v4** - Utility-first CSS framework
+- **Framer Motion 12.38.0** - Premium spring animations & stagger transitions
+- **React Dropzone 15.0.0** - Drag & drop file upload
 
 ### ⚙️ Backend
 
-- **Next.js API Routes** - Serverless API endpoints
-- **pdf-lib** - PDF manipulation
-- **sharp** - Image processing
-- **mammoth.js** - Word document processing
+- **Next.js Serverless API Routes** - Dynamic file processing endpoints
+- **pdf-lib 1.17.1** - PDF manipulation (merge, split)
+- **sharp 0.34.5** - High-performance image processing (JPEG/PNG, padded square icons)
+- **mammoth 1.12.0** - Word document processing (.docx to HTML/text extraction)
+- **pdfkit 0.18.0 & docx 9.6.1** - Document generation
 
 ### 🗄️ Database & Storage
 
 - **Supabase** - Backend as a Service
   - PostgreSQL database
-  - Authentication
-  - Storage
-  - Row Level Security
+  - Supabase Auth (Email verification, profiles)
+  - Supabase Storage (uploads, converted, temp buckets)
+  - Row Level Security (RLS)
 
 ---
 
@@ -114,7 +115,7 @@ Live Demo: [fluxyconvert.vercel.app](https://fluxyconvert.vercel.app)
 fluxconvert/
 │
 ├── app/                          # Next.js App Router
-│   ├── api/                      # API Routes
+│   ├── api/                      # API Routes (Serverless)
 │   │   └── convert/
 │   │       ├── word-to-pdf/      # Word to PDF conversion endpoint
 │   │       ├── jpg-to-pdf/       # JPG/PNG to PDF conversion endpoint
@@ -131,14 +132,19 @@ fluxconvert/
 │   ├── merge-pdf/                # Merge PDF page
 │   ├── split-pdf/                # Split PDF page
 │   ├── result/                   # Result page
-│   └── page.tsx                  # Home page
+│   ├── icon.png                  # Custom square brand icon (anti-stretching)
+│   ├── sitemap.ts                # Next.js dynamic sitemap.xml route
+│   ├── robots.ts                 # Next.js dynamic robots.txt route
+│   ├── globals.css               # Premium CSS animations, glassmorphism & responsive rules
+│   ├── layout.tsx                # Root layout with SEO metadata & verification tags
+│   └── page.tsx                  # Home page router
 │
 ├── src/
 │   ├── components/
 │   │   ├── auth/                 # Authentication components
 │   │   │   ├── LoginForm.tsx
 │   │   │   └── RegisterForm.tsx
-│   │   ├── converters/           # Converter components
+│   │   ├── converters/           # Converter components (Responsive + Stagger entrance)
 │   │   │   ├── WordToPdfConverter.tsx
 │   │   │   ├── JpgToPdfConverter.tsx
 │   │   │   ├── PdfToJpgConverter.tsx
@@ -146,6 +152,8 @@ fluxconvert/
 │   │   │   └── SplitPdfConverter.tsx
 │   │   ├── dashboard/            # Dashboard components
 │   │   │   └── ConversionHistory.tsx
+│   │   ├── MobileNav.tsx         # Hamburger spring slide drawer component
+│   │   ├── UserProfile.tsx       # Auth user state component
 │   │   ├── home.tsx              # Home page component
 │   │   └── result.tsx            # Result page component
 │   │
@@ -166,6 +174,8 @@ fluxconvert/
 │
 ├── public/
 │   └── images/                   # Static images and references
+│       ├── icon.png              # Original brand logo icon
+│       └── icon_square.png       # Perfectly padded 1:1 square icon (anti-gepeng)
 │
 ├── middleware.ts                 # Next.js middleware
 ├── .env.local.example            # Environment variables template
