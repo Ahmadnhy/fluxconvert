@@ -25,8 +25,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FluxConvert - Precise tools for creative professionals",
-  description: "Professional-grade tools to merge, split, and convert your documents securely and instantly.",
+  title: "FluxConvert | File Converter Web Application",
+  description: "Website converter file berbasis web yang memungkinkan pengguna untuk mengubah berbagai format file seperti Word ke PDF, JPG ke PDF, PDF ke JPG, serta menggabungkan dan memisahkan file PDF dengan mudah dan cepat.",
+  keywords: ["flux convert", "flucvonvert", "file converter", "pdf converter", "word to pdf", "jpg to pdf", "pdf to word", "pdf to jpg", "merge pdf", "split pdf", "converter online"],
+  verification: {
+    google: "_-vEABRQqyByT-NkAOFvtri63dCyf3QYIWcpvpJTYTE",
+  },
+  openGraph: {
+    title: "FluxConvert | File Converter Web Application",
+    description: "Website converter file berbasis web yang memungkinkan pengguna untuk mengubah berbagai format file seperti Word ke PDF, JPG ke PDF, PDF ke JPG, serta menggabungkan dan memisahkan file PDF dengan mudah dan cepat.",
+    type: "website",
+    locale: "id_ID",
+  },
+  icons: {
+    icon: "/images/icon.png",
+    shortcut: "/images/icon.png",
+    apple: "/images/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -40,6 +55,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${inter.variable} h-full antialiased`}
     >
       <head>
+        <meta name="google-site-verification" content="_-vEABRQqyByT-NkAOFvtri63dCyf3QYIWcpvpJTYTE" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
