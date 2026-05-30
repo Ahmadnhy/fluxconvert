@@ -6,6 +6,15 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  // Optimize: Check if there's any Supabase auth cookie present.
+  // If not, we can safely skip the expensive getUser() network request.
+  const cookies = request.cookies.getAll();
+  const hasAuthCookie = cookies.some((c) => c.name.startsWith('sb-'));
+
+  if (!hasAuthCookie) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

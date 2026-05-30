@@ -99,7 +99,9 @@ export default function ConversionHistory() {
       const data = await response.json();
 
       setConversions(data.conversions || []);
-      setPagination(data.pagination);
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
     } catch (err) {
       console.error('Error fetching conversions:', err);
       if (!silent) {

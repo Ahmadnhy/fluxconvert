@@ -13,7 +13,8 @@ export default function Result() {
     const checkAuth = async () => {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
         setUserEmail(user?.email || null);
       } catch (error) {
         console.error('Auth check error:', error);

@@ -34,6 +34,19 @@ vi.mock('@/src/lib/supabase/client', () => ({
   createClient: () => ({
     auth: {
       getUser: mockGetUser,
+      getSession: async () => {
+        try {
+          const userResult = await mockGetUser();
+          return {
+            data: {
+              session: userResult?.data?.user ? { user: userResult.data.user } : null,
+            },
+          };
+        } catch (err) {
+          // If mockGetUser rejects, make getSession reject similarly
+          throw err;
+        }
+      },
     },
   }),
 }));

@@ -45,6 +45,18 @@ vi.mock('@/src/lib/supabase/client', () => ({
     auth: {
       getUser: mockGetUser,
       signOut: mockSignOut,
+      getSession: async () => {
+        try {
+          const userResult = await mockGetUser();
+          return {
+            data: {
+              session: userResult?.data?.user ? { user: userResult.data.user } : null,
+            },
+          };
+        } catch (err) {
+          throw err;
+        }
+      },
     },
   }),
 }));
