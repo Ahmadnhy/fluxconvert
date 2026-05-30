@@ -26,10 +26,34 @@ vi.mock('@/src/lib/supabase/server', () => ({
   })),
 }));
 
+// Mock Supabase service client
+const mockServiceFrom = vi.fn();
+const mockServiceDelete = vi.fn();
+const mockServiceStorage = {
+  from: vi.fn(() => ({
+    remove: vi.fn(async () => ({ error: null })),
+  })),
+};
+
+vi.mock('@/src/lib/supabase/service', () => ({
+  createServiceClient: vi.fn(() => ({
+    from: mockServiceFrom,
+    storage: mockServiceStorage,
+  })),
+}));
+
 describe('DELETE /api/conversions/:id', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
+
+    // Set up default service client mocks
+    mockServiceFrom.mockReturnValue({
+      delete: mockServiceDelete,
+    });
+    mockServiceDelete.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
   });
 
   /**
@@ -94,10 +118,10 @@ describe('DELETE /api/conversions/:id', () => {
 
     // Verify database calls
     expect(mockFrom).toHaveBeenCalledWith('conversions');
-    expect(mockSelect).toHaveBeenCalledWith('id, user_id');
+    expect(mockSelect).toHaveBeenCalled();
     expect(mockEq).toHaveBeenCalledWith('id', conversionId);
-    expect(mockDelete).toHaveBeenCalled();
-    expect(mockDeleteEq).toHaveBeenCalledWith('id', conversionId);
+    expect(mockServiceFrom).toHaveBeenCalledWith('conversions');
+    expect(mockServiceDelete).toHaveBeenCalled();
   });
 
   /**
@@ -188,7 +212,7 @@ describe('DELETE /api/conversions/:id', () => {
     expect(responseData.error).toBe('Forbidden: You do not own this conversion');
 
     // Verify delete was NOT called
-    expect(mockDelete).not.toHaveBeenCalled();
+    expect(mockServiceDelete).not.toHaveBeenCalled();
   });
 
   /**
@@ -241,7 +265,7 @@ describe('DELETE /api/conversions/:id', () => {
     expect(responseData.error).toBe('Conversion not found');
 
     // Verify delete was NOT called
-    expect(mockDelete).not.toHaveBeenCalled();
+    expect(mockServiceDelete).not.toHaveBeenCalled();
   });
 
   /**
@@ -309,17 +333,12 @@ describe('DELETE /api/conversions/:id', () => {
     });
 
     // Mock failed deletion
-    const mockDeleteEq = vi.fn().mockResolvedValue({
+    const mockServiceDeleteEq = vi.fn().mockResolvedValue({
       error: { message: 'Database connection failed' },
     });
 
-    mockDelete.mockReturnValue({
-      eq: mockDeleteEq,
-    });
-
-    mockFrom.mockReturnValue({
-      select: mockSelect,
-      delete: mockDelete,
+    mockServiceDelete.mockReturnValue({
+      eq: mockServiceDeleteEq,
     });
 
     // Create request

@@ -1,4 +1,5 @@
 import { createClient } from '@/src/lib/supabase/server';
+import { createServiceClient } from '@/src/lib/supabase/service';
 
 /**
  * Conversion record data for creating a new conversion entry in the database
@@ -34,7 +35,7 @@ export async function createConversionRecord(
   data: ConversionRecordData
 ): Promise<{ id: string; error?: Error }> {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
 
     // Validate required fields
     if (!data.input_file_id || !data.conversion_type) {
@@ -188,7 +189,7 @@ export async function updateConversionStatus(
   data: UpdateConversionStatusData
 ): Promise<{ success: boolean; error?: Error }> {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
 
     // Validate required fields
     if (!data.conversion_id || !data.status) {

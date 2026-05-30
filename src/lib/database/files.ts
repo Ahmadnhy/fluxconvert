@@ -41,11 +41,7 @@ export async function createFileRecord(
   data: FileRecordData
 ): Promise<{ id: string; error?: Error }> {
   try {
-    // Use service client for anonymous users (bypasses RLS)
-    // Use regular client for authenticated users (respects RLS)
-    const supabase = data.user_id === null 
-      ? createServiceClient()
-      : await createClient();
+    const supabase = createServiceClient();
 
     // Validate required fields
     if (!data.file_name || !data.file_type || !data.storage_path || !data.storage_bucket) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/src/lib/supabase/server';
+import { createServiceClient } from '@/src/lib/supabase/service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -51,10 +52,17 @@ export async function DELETE(
       );
     }
 
-    // Fetch conversion record to verify ownership
+    // Fetch conversion record to verify ownership and get associated file details
     const { data: conversion, error: fetchError } = await supabase
       .from('conversions')
-      .select('id, user_id')
+      .select(`
+        id,
+        user_id,
+        input_file_id,
+        output_file_id,
+        input_file:input_file_id (id, storage_path, storage_bucket),
+        output_file:output_file_id (id, storage_path, storage_bucket)
+      `)
       .eq('id', conversionId)
       .single();
 
@@ -83,11 +91,13 @@ export async function DELETE(
       );
     }
 
+    const convRecord = conversion as any;
+
     // Verify user owns the conversion
-    if (conversion.user_id !== user.id) {
+    if (convRecord.user_id !== user.id) {
       console.log('DELETE /api/conversions/:id - Forbidden: User does not own conversion', {
         userId: user.id,
-        conversionUserId: conversion.user_id,
+        conversionUserId: convRecord.user_id,
         conversionId,
       });
       return NextResponse.json(
@@ -96,8 +106,11 @@ export async function DELETE(
       );
     }
 
+    // Initialize service client to bypass RLS for secure deletion of owned assets
+    const serviceClient = createServiceClient();
+
     // Delete conversion record from database
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await serviceClient
       .from('conversions')
       .delete()
       .eq('id', conversionId);
@@ -110,8 +123,52 @@ export async function DELETE(
       );
     }
 
+    // Delete associated output file if it exists
+    if (convRecord.output_file) {
+      const { storage_path, storage_bucket, id: fileId } = convRecord.output_file;
+      
+      // Delete physical file from storage
+      const { error: storageError } = await serviceClient.storage
+        .from(storage_bucket)
+        .remove([storage_path]);
+      if (storageError) {
+        console.error(`DELETE /api/conversions/:id - Failed to delete output file from storage (${storage_bucket}/${storage_path}):`, storageError);
+      }
+
+      // Delete file record from files table
+      const { error: fileDeleteError } = await serviceClient
+        .from('files')
+        .delete()
+        .eq('id', fileId);
+      if (fileDeleteError) {
+        console.error(`DELETE /api/conversions/:id - Failed to delete output file record from database (${fileId}):`, fileDeleteError);
+      }
+    }
+
+    // Delete associated input file if it exists
+    if (convRecord.input_file) {
+      const { storage_path, storage_bucket, id: fileId } = convRecord.input_file;
+      
+      // Delete physical file from storage
+      const { error: storageError } = await serviceClient.storage
+        .from(storage_bucket)
+        .remove([storage_path]);
+      if (storageError) {
+        console.error(`DELETE /api/conversions/:id - Failed to delete input file from storage (${storage_bucket}/${storage_path}):`, storageError);
+      }
+
+      // Delete file record from files table
+      const { error: fileDeleteError } = await serviceClient
+        .from('files')
+        .delete()
+        .eq('id', fileId);
+      if (fileDeleteError) {
+        console.error(`DELETE /api/conversions/:id - Failed to delete input file record from database (${fileId}):`, fileDeleteError);
+      }
+    }
+
     // Log successful deletion for audit trail
-    console.log('DELETE /api/conversions/:id - Successfully deleted conversion:', {
+    console.log('DELETE /api/conversions/:id - Successfully deleted conversion and all associated files:', {
       conversionId,
       userId: user.id,
       timestamp: new Date().toISOString(),

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
@@ -13,11 +13,55 @@ interface EditProfileClientProps {
 export default function EditProfileClient({ user }: EditProfileClientProps) {
   const [fullName, setFullName] = useState(user.user_metadata?.full_name || user.user_metadata?.name || '');
   const [avatarUrl, setAvatarUrl] = useState(user.user_metadata?.avatar_url || '');
+  const [displayAvatarUrl, setDisplayAvatarUrl] = useState(user.user_metadata?.avatar_url || '');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Resolve private storage URLs to signed URLs on client
+  useEffect(() => {
+    const resolveAvatar = async () => {
+      if (!avatarUrl) {
+        setDisplayAvatarUrl('');
+        return;
+      }
+
+      if (avatarUrl.startsWith('data:') || avatarUrl.startsWith('blob:')) {
+        setDisplayAvatarUrl(avatarUrl);
+        return;
+      }
+
+      try {
+        const supabase = createClient();
+        let path = avatarUrl;
+        if (avatarUrl.includes('/uploads/')) {
+          path = avatarUrl.split('/uploads/')[1];
+        }
+        path = path.split('?')[0];
+
+        const bucket = supabase.storage.from('uploads');
+        if (typeof bucket.createSignedUrl !== 'function') {
+          setDisplayAvatarUrl(avatarUrl);
+          return;
+        }
+
+        const { data, error } = await bucket.createSignedUrl(path, 31536000); // 1 year expiry
+
+        if (!error && data?.signedUrl) {
+          setDisplayAvatarUrl(data.signedUrl);
+        } else {
+          setDisplayAvatarUrl(avatarUrl);
+        }
+      } catch (err) {
+        console.error('Error resolving signed URL:', err);
+        setDisplayAvatarUrl(avatarUrl);
+      }
+    };
+
+    resolveAvatar();
+  }, [avatarUrl]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,6 +102,7 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
+      setDisplayAvatarUrl(publicUrl);
       setMessage({ type: 'success', text: 'Avatar uploaded successfully!' });
     } catch (error) {
       console.error('Error uploading avatar:', error);
@@ -148,19 +193,18 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
           <label className="block text-sm font-medium text-gray-700 mb-3">Profile Picture</label>
           <div className="flex items-center gap-6">
             {/* Avatar Preview */}
-            <div className="relative">
-              {avatarUrl ? (
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200">
-                  <Image
-                    src={avatarUrl}
+            <div className="relative flex-shrink-0">
+              {displayAvatarUrl ? (
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+                  <img
+                    src={displayAvatarUrl}
                     alt="Profile"
-                    width={96}
-                    height={96}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-full bg-[#5b8ba8] text-white flex items-center justify-center text-2xl font-semibold">
+                <div className="w-24 h-24 rounded-full bg-[#5b8ba8] text-white flex items-center justify-center text-2xl font-semibold flex-shrink-0">
                   {getInitials()}
                 </div>
               )}
@@ -206,7 +250,7 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Enter your full name"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none cursor-text"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5b8ba8] focus:border-transparent outline-none cursor-text text-gray-900 bg-white"
           />
         </div>
 
@@ -220,7 +264,7 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
             id="email"
             value={user.email || ''}
             disabled
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed font-medium"
           />
           <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
         </div>

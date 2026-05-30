@@ -156,6 +156,8 @@ export default function ConversionHistory() {
     const badges: Record<string, { bg: string; text: string; label: string }> = {
       completed: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
       failed: { bg: 'bg-red-100', text: 'text-red-700', label: 'Failed' },
+      pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
+      processing: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Processing' },
     };
     const badge = badges[status] || badges.failed;
     return (
@@ -362,8 +364,8 @@ export default function ConversionHistory() {
             className="w-full sm:w-auto pl-4 pr-11 py-2.5 bg-white border border-gray-200/80 shadow-sm rounded-xl focus:ring-4 focus:ring-[#5b8ba8]/15 focus:border-[#5b8ba8] outline-none cursor-pointer hover:border-[#5b8ba8]/40 hover:shadow-md transition-all duration-300 appearance-none text-sm font-medium text-gray-700"
           >
             <option value="all" className="text-gray-500">All Status</option>
-            <option value="completed" className="text-gray-900">Completed</option>
-            <option value="failed" className="text-gray-900">Failed</option>
+            <option value="completed" className="text-gray-900">Completed Only</option>
+            <option value="failed" className="text-gray-900">Failed Only</option>
           </select>
           <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none bg-gray-50 group-hover:bg-[#5b8ba8]/10 transition-colors p-1.5 rounded-lg">
             <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#5b8ba8] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -449,77 +451,75 @@ export default function ConversionHistory() {
             {conversions.map((conversion) => (
               <div
                 key={conversion.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 hover:shadow-md transition-shadow"
               >
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                      <span className="text-sm font-medium text-[#5b8ba8] break-words">
-                        {getConversionTypeLabel(conversion.conversionType)}
-                      </span>
-                      {getStatusBadge(conversion.status)}
-                    </div>
-                    
-                    <div className="space-y-1">
+                {/* Top header part: Type and Status Badge, and Date */}
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-gray-100">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="text-sm font-semibold text-[#5b8ba8]">
+                      {getConversionTypeLabel(conversion.conversionType)}
+                    </span>
+                    {getStatusBadge(conversion.status)}
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {formatDate(conversion.createdAt)}
+                  </p>
+                </div>
+
+                {/* Main Content: Files and Sizes aligned with Buttons */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  {/* Left & Center: Files and Sizes */}
+                  <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 flex-1 min-w-0">
+                    {/* Files side-by-side */}
+                    <div className="flex items-center flex-wrap gap-2 text-sm text-gray-700 font-medium">
                       {conversion.inputFile && (
-                        <div className="flex items-start gap-2 text-sm text-gray-600 min-w-0">
-                          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
-                          <span className="break-words overflow-wrap-anywhere min-w-0 flex-1">{conversion.inputFile.fileName}</span>
-                          <span className="text-gray-400 flex-shrink-0">•</span>
-                          <span className="flex-shrink-0">{formatFileSize(conversion.inputFile.fileSize)}</span>
+                          <span className="truncate max-w-[150px] sm:max-w-[200px]" title={conversion.inputFile.fileName}>
+                            {conversion.inputFile.fileName}
+                          </span>
                         </div>
                       )}
                       
-                      {conversion.outputFile && (
-                        <div className="flex items-start gap-2 text-sm text-gray-600 min-w-0">
-                          <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="break-words overflow-wrap-anywhere min-w-0 flex-1">{conversion.outputFile.fileName}</span>
-                          <span className="text-gray-400 flex-shrink-0">•</span>
-                          <span className="flex-shrink-0">{formatFileSize(conversion.outputFile.fileSize)}</span>
-                        </div>
-                      )}
+                      {conversion.outputFile ? (
+                        <>
+                          <span className="text-[#5b8ba8] font-bold px-2 select-none">---&gt;</span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="truncate max-w-[150px] sm:max-w-[200px] text-green-700 font-semibold" title={conversion.outputFile.fileName}>
+                              {conversion.outputFile.fileName}
+                            </span>
+                          </div>
+                        </>
+                      ) : null}
                     </div>
-                    
-                    <p className="text-xs text-gray-500 mt-2">
-                      {formatDate(conversion.createdAt)}
-                    </p>
+
+                    {/* Sizes side-by-side */}
+                    <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+                      {conversion.inputFile && (
+                        <span>{formatFileSize(conversion.inputFile.fileSize)}</span>
+                      )}
+                      {conversion.outputFile ? (
+                        <>
+                          <span className="text-gray-400 font-bold px-2 select-none">---&gt;</span>
+                          <span className="text-green-600 font-semibold">{formatFileSize(conversion.outputFile.fileSize)}</span>
+                        </>
+                      ) : null}
+                    </div>
                   </div>
 
-                  {/* Action buttons */}
-                  <div className="flex flex-col items-end gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-shrink-0">
-                    {/* Delete button (available for all statuses) */}
-                    <button
-                      onClick={() => setDeleteConfirmDialog({ isOpen: true, conversionId: conversion.id })}
-                      disabled={deletingId === conversion.id}
-                      className={`flex items-center justify-center p-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
-                        deletingId === conversion.id
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-white border border-red-300 text-red-600 hover:bg-red-50'
-                      }`}
-                      aria-label="Delete conversion"
-                      title="Delete conversion"
-                    >
-                      {deletingId === conversion.id ? (
-                        <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      )}
-                    </button>
-
+                  {/* Action buttons - Aligned right & centered vertically */}
+                  <div className="flex items-center gap-3 mt-2 lg:mt-0 flex-shrink-0">
                     {/* Download button (only if completed and active) */}
                     {conversion.status === 'completed' && conversion.outputFile && conversion.outputFile.status === 'active' && (
                       <button
                         onClick={() => handleDownload(conversion.id, conversion.outputFile!.fileName)}
                         disabled={downloadingId === conversion.id}
-                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium flex-1 sm:flex-initial cursor-pointer ${
+                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer btn-lift ${
                           downloadingId === conversion.id
                             ? 'bg-gray-400 text-white cursor-not-allowed'
                             : 'bg-[#5b8ba8] text-white hover:bg-[#4a7a94]'
@@ -543,6 +543,29 @@ export default function ConversionHistory() {
                         )}
                       </button>
                     )}
+
+                    {/* Delete button (available for all statuses) */}
+                    <button
+                      onClick={() => setDeleteConfirmDialog({ isOpen: true, conversionId: conversion.id })}
+                      disabled={deletingId === conversion.id}
+                      className={`flex items-center justify-center p-2.5 rounded-lg transition-colors text-sm font-medium cursor-pointer btn-lift ${
+                        deletingId === conversion.id
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300'
+                      }`}
+                      aria-label="Delete conversion"
+                      title="Delete conversion"
+                    >
+                      {deletingId === conversion.id ? (
+                        <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>

@@ -14,6 +14,7 @@ export default function UserProfile({ userEmail }: UserProfileProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [userName, setUserName] = useState<string>('');
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -29,6 +30,26 @@ export default function UserProfile({ userEmail }: UserProfileProps) {
           // Try to get user metadata (name)
           const displayName = user.user_metadata?.full_name || user.user_metadata?.name || '';
           setUserName(displayName);
+
+          const rawAvatarUrl = user.user_metadata?.avatar_url || '';
+          if (rawAvatarUrl) {
+            // Resolve to a signed URL since 'uploads' is private
+            let path = rawAvatarUrl;
+            if (rawAvatarUrl.includes('/uploads/')) {
+              path = rawAvatarUrl.split('/uploads/')[1];
+            }
+            path = path.split('?')[0];
+
+            const { data, error } = await supabase.storage
+              .from('uploads')
+              .createSignedUrl(path, 31536000); // 1 year
+
+            if (!error && data?.signedUrl) {
+              setAvatarUrl(data.signedUrl);
+            } else {
+              setAvatarUrl(rawAvatarUrl);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -101,8 +122,19 @@ export default function UserProfile({ userEmail }: UserProfileProps) {
           <span className="hidden md:block text-sm font-medium text-gray-700">
             {getDisplayName()}
           </span>
-          <div className="w-9 h-9 rounded-full bg-[#5b8ba8] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
-            {getInitials()}
+          <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-gray-200 flex items-center justify-center">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-full h-full bg-[#5b8ba8] text-white flex items-center justify-center text-sm font-semibold">
+                {getInitials()}
+              </div>
+            )}
           </div>
           <svg
             className={`w-4 h-4 text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`}
