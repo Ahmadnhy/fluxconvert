@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://fluxconvert.com'; // Change this to your actual production domain
+  const baseUrl = 'https://fluxyconvert.vercel.app/'; // Change this to your actual production domain
 
   const routes = [
     '',

@@ -26,14 +26,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FluxConvert | File Converter Web Application",
+  title: "FluxConvert | File Converter",
   description: "Website converter file berbasis web yang memungkinkan pengguna untuk mengubah berbagai format file seperti Word ke PDF, JPG ke PDF, PDF ke JPG, serta menggabungkan dan memisahkan file PDF dengan mudah dan cepat.",
   keywords: ["flux convert", "flucvonvert", "file converter", "pdf converter", "word to pdf", "jpg to pdf", "pdf to word", "pdf to jpg", "merge pdf", "split pdf", "converter online"],
   verification: {
     google: "_-vEABRQqyByT-NkAOFvtri63dCyf3QYIWcpvpJTYTE",
   },
   openGraph: {
-    title: "FluxConvert | File Converter Web Application",
+    title: "FluxConvert | File Converter",
     description: "Website converter file berbasis web yang memungkinkan pengguna untuk mengubah berbagai format file seperti Word ke PDF, JPG ke PDF, PDF ke JPG, serta menggabungkan dan memisahkan file PDF dengan mudah dan cepat.",
     type: "website",
     locale: "id_ID",
