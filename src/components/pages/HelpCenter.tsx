@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/src/lib/supabase/client';
 import UserProfile from '@/src/components/UserProfile';
+import MobileNav from '@/src/components/MobileNav';
 
 export default function HelpCenter() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -48,49 +49,58 @@ export default function HelpCenter() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#1a1c1e] font-body-md antialiased flex flex-col">
-      {/* Navigation Bar */}
-      <nav className="bg-white border-b border-gray-200 w-full sticky top-0 z-50">
-        <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-8">
-            <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
-              FluxConvert
-            </Link>
-            <div className="hidden md:flex gap-6 text-sm font-medium">
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
-                Word to PDF
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
-                PDF to Word
-              </Link>
+      {/* Navigation */}
+      <nav className="nav-glass w-full sticky top-0 z-50">
+        <div className="flex justify-between items-center w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 max-w-7xl mx-auto">
+          {/* Logo - Left */}
+          <Link className="text-[#1a1c1e] font-semibold text-lg cursor-pointer" href="/">
+            <span className="gradient-text">FluxConvert</span>
+          </Link>
+          
+          {/* Menu - Center */}
+          <div className="hidden md:flex gap-4 lg:gap-6 text-sm font-medium absolute left-1/2 transform -translate-x-1/2">
+            {userEmail && (
               <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/dashboard">
                 Dashboard
               </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/privacy">
-                Privacy
-              </Link>
-              <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/terms">
-                Terms
-              </Link>
-              <Link className="text-[#5b8ba8] hover:text-gray-900 transition-colors" href="/help-center">
-                Help Center
-              </Link>
-            </div>
+            )}
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/word-to-pdf">
+              Word to PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-word">
+              PDF to Word
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/jpg-to-pdf">
+              JPG to PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/pdf-to-jpg">
+              PDF to JPG
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/merge-pdf">
+              Merge PDF
+            </Link>
+            <Link className="text-gray-600 hover:text-gray-900 transition-colors" href="/split-pdf">
+              Split PDF
+            </Link>
           </div>
-          <div className="flex items-center gap-4">
+          
+          {/* User Profile - Right */}
+          <div className="flex items-center gap-2 sm:gap-4">
             {isLoading ? (
               <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse"></div>
             ) : userEmail ? (
               <UserProfile userEmail={userEmail} />
             ) : (
-              <>
+              <div className="hidden sm:flex items-center gap-4">
                 <Link className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors" href="/login">
                   Login
                 </Link>
-                <Link className="bg-[#5b8ba8] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#4a7a94] transition-colors" href="/register">
+                <Link className="bg-[#5b8ba8] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#4a7a94] transition-colors btn-lift" href="/register">
                   Sign Up
                 </Link>
-              </>
+              </div>
             )}
+            <MobileNav userEmail={userEmail} isLoading={isLoading} />
           </div>
         </div>
       </nav>
@@ -225,12 +235,15 @@ export default function HelpCenter() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16 w-full">
-        <div className="max-w-7xl mx-auto py-8 px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="bg-white border-t border-gray-200 mt-10 sm:mt-12 lg:mt-16 w-full">
+        <div className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-base font-semibold text-[#1a1c1e]">
-            FluxConvert
+            <span className="gradient-text">FluxConvert</span>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
+          <div className="flex flex-wrap justify-center gap-x-5 sm:gap-x-6 gap-y-2 text-sm text-gray-600">
+            <Link className="hover:text-gray-900 transition-colors" href="/">
+              Home
+            </Link>
             <Link className="hover:text-gray-900 transition-colors" href="/privacy">
               Privacy Policy
             </Link>

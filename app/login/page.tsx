@@ -44,12 +44,15 @@ export default function LoginPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16 w-full">
-        <div className="max-w-7xl mx-auto py-8 px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="bg-white border-t border-gray-200 mt-10 sm:mt-12 lg:mt-16 w-full">
+        <div className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-base font-semibold text-[#1a1c1e]">
-            FluxConvert
+            <span className="gradient-text">FluxConvert</span>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
+          <div className="flex flex-wrap justify-center gap-x-5 sm:gap-x-6 gap-y-2 text-sm text-gray-600">
+            <Link className="hover:text-gray-900 transition-colors" href="/">
+              Home
+            </Link>
             <Link className="hover:text-gray-900 transition-colors" href="/privacy">
               Privacy Policy
             </Link>

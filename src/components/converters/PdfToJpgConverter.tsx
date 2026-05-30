@@ -178,7 +178,7 @@ export default function PdfToJpgConverter() {
       {/* Navigation Bar */}
       <nav className="nav-glass w-full sticky top-0 z-50">
         <div className="flex justify-between items-center w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 max-w-7xl mx-auto">
-          <Link className="text-[#1a1c1e] font-semibold text-lg" href="/">
+          <Link className="text-[#1a1c1e] font-semibold text-lg cursor-pointer" href="/">
             <span className="gradient-text">FluxConvert</span>
           </Link>
           
