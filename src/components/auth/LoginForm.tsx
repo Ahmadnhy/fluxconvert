@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { createClient } from '@/src/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useToast } from '@/src/components/Toast';
 
 export default function LoginForm() {
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,10 +35,13 @@ export default function LoginForm() {
 
       if (error) throw error;
 
+      showToast('Successfully logged in!', 'success');
       router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+      const errMsg = err.message || 'Invalid email or password';
+      setError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setLoading(false);
     }

@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { createClient } from '@/src/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useToast } from '@/src/components/Toast';
 
 export default function RegisterForm() {
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -40,13 +42,16 @@ export default function RegisterForm() {
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
+      showToast(passwordError, 'error');
       setLoading(false);
       return;
     }
 
     // Check if passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      const matchErr = 'Passwords do not match';
+      setError(matchErr);
+      showToast(matchErr, 'error');
       setLoading(false);
       return;
     }
@@ -65,17 +70,21 @@ export default function RegisterForm() {
 
       if (error) throw error;
 
+      showToast('Registration successful! Please verify your email.', 'success');
       setSuccess(true);
       // Redirect to login after 2 seconds
       setTimeout(() => {
         router.push('/login');
       }, 2000);
     } catch (err: any) {
+      let errMsg = '';
       if (err.message.includes('already registered')) {
-        setError('Email already registered');
+        errMsg = 'Email already registered';
       } else {
-        setError(err.message || 'Registration failed');
+        errMsg = err.message || 'Registration failed';
       }
+      setError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setLoading(false);
     }

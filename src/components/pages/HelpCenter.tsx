@@ -228,9 +228,14 @@ export default function HelpCenter() {
               Our support team is ready to assist you with any technical issues.
             </p>
           </div>
-          <button className="bg-white text-[#5b8ba8] font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap">
+          <a
+            href="https://ahmadnh.is-a.dev/#contact"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white text-[#5b8ba8] font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap text-center inline-block shadow-sm hover:shadow btn-lift"
+          >
             Contact Support
-          </button>
+          </a>
         </section>
       </main>
 

@@ -4,12 +4,14 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/lib/supabase/client';
 import ConfirmDialog from '@/src/components/ConfirmDialog';
+import { useToast } from '@/src/components/Toast';
 
 interface UserProfileProps {
   userEmail: string;
 }
 
 export default function UserProfile({ userEmail }: UserProfileProps) {
+  const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -100,6 +102,7 @@ export default function UserProfile({ userEmail }: UserProfileProps) {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
+      showToast('Successfully logged out!', 'success');
       setShowLogoutConfirm(false);
       setIsOpen(false);
       router.push('/');

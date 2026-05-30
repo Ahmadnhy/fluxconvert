@@ -469,7 +469,7 @@ export default function ConversionHistory() {
                 {/* Main Content: Files and Sizes aligned with Buttons */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   {/* Left & Center: Files and Sizes */}
-                  <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 flex-1 min-w-0">
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                     {/* Files side-by-side */}
                     <div className="flex items-center flex-wrap gap-2 text-sm text-gray-700 font-medium">
                       {conversion.inputFile && (
@@ -485,7 +485,9 @@ export default function ConversionHistory() {
                       
                       {conversion.outputFile ? (
                         <>
-                          <span className="text-[#5b8ba8] font-bold px-2 select-none">---&gt;</span>
+                          <svg className="w-4 h-4 text-[#5b8ba8] mx-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
                           <div className="flex items-center gap-1.5 min-w-0">
                             <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -499,13 +501,15 @@ export default function ConversionHistory() {
                     </div>
 
                     {/* Sizes side-by-side */}
-                    <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
                       {conversion.inputFile && (
                         <span>{formatFileSize(conversion.inputFile.fileSize)}</span>
                       )}
                       {conversion.outputFile ? (
                         <>
-                          <span className="text-gray-400 font-bold px-2 select-none">---&gt;</span>
+                          <svg className="w-3.5 h-3.5 text-gray-400 mx-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
                           <span className="text-green-600 font-semibold">{formatFileSize(conversion.outputFile.fileSize)}</span>
                         </>
                       ) : null}

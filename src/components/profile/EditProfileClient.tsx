@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/src/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import Image from 'next/image';
+import { useToast } from '@/src/components/Toast';
 
 interface EditProfileClientProps {
   user: User;
 }
 
 export default function EditProfileClient({ user }: EditProfileClientProps) {
+  const { showToast } = useToast();
   const [fullName, setFullName] = useState(user.user_metadata?.full_name || user.user_metadata?.name || '');
   const [avatarUrl, setAvatarUrl] = useState(user.user_metadata?.avatar_url || '');
   const [displayAvatarUrl, setDisplayAvatarUrl] = useState(user.user_metadata?.avatar_url || '');
@@ -69,13 +71,17 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setMessage({ type: 'error', text: 'Please upload an image file' });
+      const errText = 'Please upload an image file';
+      setMessage({ type: 'error', text: errText });
+      showToast(errText, 'error');
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'Image size must be less than 2MB' });
+      const errText = 'Image size must be less than 2MB';
+      setMessage({ type: 'error', text: errText });
+      showToast(errText, 'error');
       return;
     }
 
@@ -104,9 +110,11 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
       setAvatarUrl(publicUrl);
       setDisplayAvatarUrl(publicUrl);
       setMessage({ type: 'success', text: 'Avatar uploaded successfully!' });
+      showToast('Avatar uploaded successfully!', 'success');
     } catch (error) {
       console.error('Error uploading avatar:', error);
       setMessage({ type: 'error', text: 'Failed to upload avatar' });
+      showToast('Failed to upload avatar', 'error');
     } finally {
       setIsUploading(false);
     }
@@ -131,6 +139,7 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
       if (error) throw error;
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      showToast('Profile updated successfully!', 'success');
       
       // Refresh the page after 1 second
       setTimeout(() => {
@@ -139,6 +148,7 @@ export default function EditProfileClient({ user }: EditProfileClientProps) {
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage({ type: 'error', text: 'Failed to update profile' });
+      showToast('Failed to update profile', 'error');
     } finally {
       setIsLoading(false);
     }

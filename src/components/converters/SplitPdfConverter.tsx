@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/src/lib/supabase/client';
 import UserProfile from '@/src/components/UserProfile';
 import MobileNav from '@/src/components/MobileNav';
+import { useToast } from '@/src/components/Toast';
 
 interface UploadedFile {
   file: File;
@@ -26,6 +27,7 @@ interface ConversionStatus {
 }
 
 export default function SplitPdfConverter() {
+  const { showToast } = useToast();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [pageRanges, setPageRanges] = useState<string>('');
   const [conversionStatus, setConversionStatus] = useState<ConversionStatus>({
@@ -60,13 +62,14 @@ export default function SplitPdfConverter() {
     
     if (rejectedFiles.length > 0) {
       const rejection = rejectedFiles[0];
+      let errMsg = 'Invalid file. Please upload a valid PDF document.';
       if (rejection.errors[0]?.code === 'file-too-large') {
-        setError('File size exceeds 50 MB limit');
+        errMsg = 'File size exceeds 50 MB limit';
       } else if (rejection.errors[0]?.code === 'file-invalid-type') {
-        setError('Only .pdf files are supported');
-      } else {
-        setError('Invalid file. Please upload a valid PDF document.');
+        errMsg = 'Only .pdf files are supported';
       }
+      setError(errMsg);
+      showToast(errMsg, 'error');
       return;
     }
 
@@ -76,6 +79,7 @@ export default function SplitPdfConverter() {
     }));
 
     setUploadedFiles(newFiles);
+    showToast('File uploaded successfully and ready to split!', 'success');
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -89,12 +93,16 @@ export default function SplitPdfConverter() {
 
   const handleConvert = async () => {
     if (uploadedFiles.length === 0) {
-      setError('Please upload a file first');
+      const msg = 'Please upload a file first';
+      setError(msg);
+      showToast(msg, 'warning');
       return;
     }
 
     if (!pageRanges.trim()) {
-      setError('Please specify page ranges (e.g., "1-3, 5, 7-10")');
+      const msg = 'Please specify page ranges (e.g., "1-3, 5, 7-10")';
+      setError(msg);
+      showToast(msg, 'warning');
       return;
     }
 
@@ -145,13 +153,16 @@ export default function SplitPdfConverter() {
         extractedPages: result.extractedPages,
         totalPages: result.totalPages,
       });
+      showToast('PDF file split successfully!', 'success');
     } catch (err: any) {
+      const errMsg = err.message || 'Split failed';
       setConversionStatus({
         status: 'error',
         progress: 0,
-        message: err.message || 'Split failed',
+        message: errMsg,
       });
-      setError(err.message || 'An error occurred during split');
+      setError(errMsg);
+      showToast(errMsg, 'error');
     }
   };
 

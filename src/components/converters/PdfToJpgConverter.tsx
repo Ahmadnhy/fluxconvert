@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/src/lib/supabase/client';
 import UserProfile from '@/src/components/UserProfile';
 import MobileNav from '@/src/components/MobileNav';
+import { useToast } from '@/src/components/Toast';
 
 interface UploadedFile {
   file: File;
@@ -24,6 +25,7 @@ interface ConversionStatus {
 }
 
 export default function PdfToJpgConverter() {
+  const { showToast } = useToast();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [conversionStatus, setConversionStatus] = useState<ConversionStatus>({
     status: 'idle',
@@ -57,13 +59,14 @@ export default function PdfToJpgConverter() {
     
     if (rejectedFiles.length > 0) {
       const rejection = rejectedFiles[0];
+      let errMsg = 'Invalid file. Please upload a valid PDF document.';
       if (rejection.errors[0]?.code === 'file-too-large') {
-        setError('File size exceeds 50 MB limit');
+        errMsg = 'File size exceeds 50 MB limit';
       } else if (rejection.errors[0]?.code === 'file-invalid-type') {
-        setError('Only .pdf files are supported');
-      } else {
-        setError('Invalid file. Please upload a valid PDF document.');
+        errMsg = 'Only .pdf files are supported';
       }
+      setError(errMsg);
+      showToast(errMsg, 'error');
       return;
     }
 
@@ -73,6 +76,7 @@ export default function PdfToJpgConverter() {
     }));
 
     setUploadedFiles(newFiles);
+    showToast('File uploaded successfully and ready to convert!', 'success');
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -86,7 +90,9 @@ export default function PdfToJpgConverter() {
 
   const handleConvert = async () => {
     if (uploadedFiles.length === 0) {
-      setError('Please upload a file first');
+      const msg = 'Please upload a file first';
+      setError(msg);
+      showToast(msg, 'warning');
       return;
     }
 
@@ -134,13 +140,16 @@ export default function PdfToJpgConverter() {
         convertedFileName: result.fileName,
         convertedFileSize: result.fileSize,
       });
+      showToast('Conversion completed successfully!', 'success');
     } catch (err: any) {
+      const errMsg = err.message || 'Conversion failed';
       setConversionStatus({
         status: 'error',
         progress: 0,
-        message: err.message || 'Conversion failed',
+        message: errMsg,
       });
-      setError(err.message || 'An error occurred during conversion');
+      setError(errMsg);
+      showToast(errMsg, 'error');
     }
   };
 
